@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VoiceScope raw clip manifest row",
+  "type": "object",
+  "required": ["clip_id","speaker_id","source_id","label","synthesis_method","device","channel","sample_rate","duration","consent_status","consent_ref","path","origin","license","is_test_fixture"],
+  "properties": {
+    "clip_id": {"type":"string","pattern":"^[A-Za-z0-9_-]+$"},
+    "speaker_id": {"type":"string","pattern":"^[A-Za-z0-9_-]+$"},
+    "source_id": {"type":"string","pattern":"^[A-Za-z0-9_-]+$"},
+    "label": {"enum":["real","fake"]},
+    "synthesis_method": {"type":"string","minLength":1},
+    "device": {"type":"string","minLength":1},
+    "channel": {"type":"string","minLength":1},
+    "sample_rate": {"type":"integer","minimum":8000,"maximum":192000},
+    "duration": {"type":"number","exclusiveMinimum":0,"exclusiveMaximum":86400},
+    "consent_status": {"enum":["pending","granted","licensed","withdrawn"]},
+    "consent_ref": {"type":"string","minLength":1},
+    "path": {"type":"string","minLength":1},
+    "origin": {"enum":["private","benchmark","test_fixture"]},
+    "license": {"type":"string","minLength":1},
+    "is_test_fixture": {"type":"boolean"},
+    "parent_clip_id": {"type":"string"},
+    "related_speaker_ids": {"type":"array","items":{"type":"string"}},
+    "related_source_ids": {"type":"array","items":{"type":"string"}},
+    "split": {"enum":["train","validation","test"]},
+    "dataset_name": {"type":"string"},
+    "dataset_version": {"type":"string"},
+    "license_url": {"type":"string"}
+  },
+  "$comment": "Schema lưu được trạng thái pending/withdrawn; pipeline chỉ chấp nhận granted/ licensed và kiểm tra path/lineage bổ sung."
+}

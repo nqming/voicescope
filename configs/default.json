@@ -1,0 +1,16 @@
+{
+  "sample_rate": 16000,
+  "n_fft": 512,
+  "win_length": 400,
+  "hop_length": 160,
+  "n_mels": 80,
+  "image_size": 256,
+  "window_seconds": 4.0,
+  "backbone": "dinov3_vits16",
+  "freeze_backbone": true,
+  "dinov3_repo": "",
+  "backbone_weights": "",
+  "checkpoint": "",
+  "device": "cpu",
+  "seed": 42
+}

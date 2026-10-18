@@ -1,0 +1,22 @@
+# Combined frontend/API. Initial demo does not bundle torch or any checkpoint.
+services:
+  - type: web
+    name: voicescope
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: VOICESCOPE_CONFIG
+        value: /app/configs/default.json
+      - key: VOICESCOPE_DEVICE
+        value: cpu
+      - key: VOICESCOPE_ALLOWED_HOSTS
+        value: "*.onrender.com,localhost,127.0.0.1"
+      - key: VOICESCOPE_INFERENCE_PER_MINUTE
+        value: "6"
+      - key: FORWARDED_ALLOW_IPS
+        value: "*"
