@@ -27,16 +27,6 @@ ingest/import/prepare không cần cài sounddevice. Template consent mặc đ�
 không được tự coi là đã có đồng ý. Tín hiệu sin trong tests không dùng báo cáo chất lượng.
 Xem [bằng chứng bản nộp](docs/submission-data-pipeline.md).
 
-## Khảo sát ban đầu
-
-Ngày 18/10/2026, thư mục chỉ chứa `design.png`, `pipeline.png`, `068431-0288open.pdf`
-và `2607.17761v2.pdf`. Không có mã, README, requirements, encoder cũ, dữ liệu,
-checkpoint hoặc `.git`/remote. Bốn tài liệu gốc được giữ nguyên. Đây là xây dựng
-dự án mới, không phải thay backbone của một hệ thống đã hoạt động.
-
-PDF đầu là **TF-C (NeurIPS 2022)**, PDF thứ hai là **TFCL cho speech deepfake dưới AFE**.
-Triển khai DINOv3 dưới đây là hướng nghiên cứu theo yêu cầu, **không phải bản tái lập
-TF-C/TFCL**; không lấy kết quả trong hai bài làm kết quả dự án. Xem [ghi chú nghiên cứu](docs/research.md).
 
 ## Các giai đoạn
 
