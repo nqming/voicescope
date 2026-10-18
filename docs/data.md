@@ -1,5 +1,8 @@
 # Thu thập và quản lý dữ liệu
 
+**Hướng dẫn nộp và mã mới:** xem [data-pipeline.md](data-pipeline.md) để chạy
+`collect ingest/record`, importer ASVspoof 2019 LA và prepare theo từng khối pipeline.
+
 Chưa có người tham gia, consent hoặc dữ liệu nào được xác nhận trong dự án.
 Không coi giá trị trong manifest là bằng chứng pháp lý; người phụ trách phải quản lý hồ sơ quyền thực tế.
 
@@ -80,6 +83,8 @@ clone bất kỳ giọng nào ngoài phạm vi đã cấp.
 
 Đặt benchmark trong `data/benchmarks/asvspoof2021/<version>/`, giữ official protocol
 và file map nguồn để tránh lẫn dữ liệu ASVspoof 2019/2021 hoặc nguồn liên quan.
-Đừng random re-split official test. V1 không có importer ASVspoof tự động: cần map
-metadata thực thành schema và kiểm tra source/speaker trước chạy prepare.
+Đừng random re-split official test. Đã có importer **ASVspoof 2019 LA** trong
+`voicescope.import_asvspoof`; **chưa có importer ASVspoof 2021**. Importer 2019 dùng
+speaker proxy cho source grouping và ghi rõ giới hạn; cần file maps gốc trước khi
+pooling benchmark liên quan. Quyền mặc định pending cho tới khi người dùng xác nhận.
 Không hướng dẫn MLAAD trong v1 do chưa xác minh release/license cụ thể; không đoán license.

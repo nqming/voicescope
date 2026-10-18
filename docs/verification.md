@@ -1,5 +1,14 @@
 # Kiểm chứng thực tế — 18/10/2026
 
+## Bản nộp mã pipeline dữ liệu
+
+Sau khi người dùng hoãn huấn luyện và yêu cầu submit code dữ liệu: đã thêm CLI
+collect ingest/record, importer ASVspoof2019 LA, templates và tài liệu đối chiếu
+pipeline. Toàn bộ tests: **23 passed, 2 skipped, 1 warning**. Import protocol/header
+thật có giới hạn: 12 dòng, 0 reject, rights pending, không train/evaluate.
+Chi tiết: [submission-data-pipeline.md](submission-data-pipeline.md).
+Repository đã có remote GitHub và commit nền d4e373e; các mục cũ bên dưới là lịch sử.
+
 ## Cập nhật triển khai sau khi đã bổ sung corpus
 
 Đã xác nhận các thư mục ASVspoof 2019 LA (train/dev/eval và CM protocols) và

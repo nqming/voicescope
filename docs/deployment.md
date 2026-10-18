@@ -9,8 +9,10 @@ Benchmark latency được giữ làm tiện ích nghiên cứu, không phải �
 CLI nghiên cứu. Chưa có detector checkpoint, PyTorch hoặc repository DINOv3 local.
 Dataset không được đóng gói vào web service và không cần để mở UI/health.
 
-Chưa có URL HTTPS public được cấp hoặc xác minh. Render có connector trong catalog
-nhưng chưa được cài/kết nối; thư mục cũng chưa có Git repository/remote.
+Repository đã có remote `https://github.com/nqming/voicescope.git` và commit nền
+`d4e373e`. Người dùng xác nhận đã deploy và mở web trên Render; URL chưa được cung
+cấp/lưu ở đây để kiểm tra độc lập. App vẫn hiển thị thiếu checkpoint đúng trạng thái.
+Các ghi chú chưa có Git/hosting trong báo cáo cũ là trạng thái lúc chuẩn bị ban đầu.
 Máy này chưa có Docker CLI/engine, nên Dockerfile/Compose chưa được build/run thực tế.
 
 ## Phương án và tài nguyên
@@ -168,7 +170,8 @@ mà vẫn dùng detector cũ.
 
 Đã hoạt động local: UI tiếng Việt, static assets, health, cảnh báo chưa model, API lỗi
 503 đúng; cấu hình Host/CORS/rate limit được test. Không lưu audio request vào disk.
-Deploy public và Docker build còn chưa được kiểm chứng vì thiếu quyền hosting/engine.
+Người dùng đã xác nhận web public mở được; kiểm chứng độc lập URL/HTTPS vẫn chưa có,
+và Docker build local chưa chạy do thiếu engine.
 Chưa có detector checkpoint nên chưa suy luận thật hoặc đo chất lượng.
 Rate limit là per-process, không thay auth/quota phân tán khi vận hành nhiều instance.
 Nếu mở app có model cho nhiều người dùng, bổ sung kiểm soát truy cập theo nhu cầu
