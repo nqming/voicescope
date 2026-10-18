@@ -288,18 +288,3 @@ cần hoàn thiện: import/QC dữ liệu đã có, quyền sử dụng phù h�
 phần cứng, huấn luyện và đánh giá protocol; hosting/repository để có URL public.
 Không mô phỏng AEC/NS/AGC rồi gọi là WebRTC thật.
 
-## Git/GitHub và cách nộp
-
-Repository hiện tại: [nqming/voicescope](https://github.com/nqming/voicescope).
-Commit nền ứng dụng/deploy: `d4e373e` trên `feature/deploy-voicescope`.
-Bản nộp mã dữ liệu được chuẩn bị trên branch **`feature/data-pipeline-submission`**,
-để review riêng và giữ nguyên branch deploy đang hoạt động.
-
-Nộp **link branch/commit** có README này cùng mã trong `voicescope/`, templates,
-configs, docs và tests. Không chỉ gửi link mặc định nếu default branch chưa có bản mới.
-Mọi kết quả push/commit thực tế được báo ở cuối phiên làm việc; không coi tên branch
-trong tài liệu là bằng chứng đã push nếu lệnh Git thất bại.
-
-Không force-push, không push trực tiếp main/master, không dùng `git add -f` cho audio,
-archives, metadata riêng hoặc weights. Hai ảnh/PDF tham khảo giữ local, không tự
-đưa lên Git khi chưa xác minh quyền phân phối. Dataset chỉ nằm ở `data/` ngoài Git.
