@@ -1,0 +1,4 @@
+-r requirements.txt
+# Install torch using the official CPU/CUDA selector first (README).
+torch>=2.7,<3
+scikit-learn>=1.6,<2

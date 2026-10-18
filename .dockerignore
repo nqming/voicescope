@@ -1,0 +1,12 @@
+# Allowlist: large data never even enters the build context.
+**
+!Dockerfile
+!requirements-runtime.txt
+!voicescope/
+!voicescope/*.py
+!web/
+!web/*.html
+!web/*.css
+!web/*.js
+!configs/
+!configs/default.json
