@@ -25,7 +25,6 @@ Chạy kiểm tra collection/import/prepare mà không cần microphone hoặc d
 `requirements-collection.txt` là dependency tùy chọn **chỉ cho ghi microphone thật**;
 ingest/import/prepare không cần cài sounddevice. Template consent mặc định pending,
 không được tự coi là đã có đồng ý. Tín hiệu sin trong tests không dùng báo cáo chất lượng.
-Xem [bằng chứng bản nộp](docs/submission-data-pipeline.md).
 
 
 ## Các giai đoạn
