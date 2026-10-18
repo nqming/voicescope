@@ -1,24 +1,5 @@
 # VoiceScope — nghiên cứu phát hiện giọng nói giả mạo tiếng Việt
 
-**Trạng thái hiện tại: đã có ASVspoof 2019 LA và Vietnam-Celeb cục bộ;
-chưa có detector đã huấn luyện hoặc checkpoint.** Dữ liệu còn cần import metadata,
-QC và kiểm tra split/quyền sử dụng trước train. Không có accuracy/F1/EER để báo cáo. UI hiển thị
-**“Chưa có mô hình hoặc dữ liệu để phân tích”**, API trả 503 cho suy luận khi chưa cấu hình.
-Pretrained DINOv3 thị giác tự nó **không phải** detector giọng nói giả.
-
-**Đính chính yêu cầu số 3: “link deploy hệ thống” là URL ứng dụng sau triển khai,
-không phải “link delay” hoặc phép đo latency.** Benchmark giữ là công cụ tùy chọn.
-Đã chuẩn bị Docker/Render cho frontend + API cùng một URL.
-Người dùng đã xác nhận triển khai và mở được web trên Render. URL public chưa được
-cung cấp trong repository để kiểm tra độc lập; web vẫn chờ detector checkpoint.
-Xem [hướng dẫn deploy, cập nhật và checkpoint](docs/deployment.md).
-
-## Bản nộp GitHub: thu thập và xử lý dữ liệu theo pipeline
-
-**Phạm vi bản nộp này: mã pipeline dữ liệu và tài liệu tái lập. Huấn luyện/cấu hình
-mô hình được hoãn theo yêu cầu.** Không có audio, checkpoint hoặc metadata cá nhân
-được đưa vào Git. Hướng dẫn chi tiết theo từng khối trong ảnh:
-[docs/data-pipeline.md](docs/data-pipeline.md).
 
 | Bước cần kiểm tra | File đã bổ sung/có sẵn | Chức năng |
 |---|---|---|
