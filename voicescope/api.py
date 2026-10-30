@@ -23,7 +23,11 @@ def create_app(config=None,web_settings=None):
     limiter=InferenceRateLimit(settings.inference_per_minute)
     @asynccontextmanager
     async def lifespan(app):
-        app.state.service=await run_in_threadpool(InferenceService,cfg)
+        service_class = InferenceService
+        if os.getenv('VOICESCOPE_MODEL') == 'aasist-l':
+            from .aasist_inference import AASISTService
+            service_class = AASISTService
+        app.state.service=await run_in_threadpool(service_class,cfg)
         app.state.busy=False
         yield
     app=FastAPI(title='VoiceScope',lifespan=lifespan)

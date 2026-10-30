@@ -41,3 +41,8 @@ USER appuser
 
 # Default target remains the lightweight web/API image without ML dependencies.
 FROM runtime AS web
+USER root
+RUN python -m pip install --no-cache-dir 'torch==2.7.1' --index-url https://download.pytorch.org/whl/cpu
+RUN mkdir -p /opt/models && python -c "import urllib.request,hashlib,pathlib; p=pathlib.Path('/opt/models/AASIST-L.pth'); urllib.request.urlretrieve('https://raw.githubusercontent.com/clovaai/aasist/a04c9863f63d44471dde8a6abcb3b082b07cd1d1/models/weights/AASIST-L.pth',p); assert hashlib.sha256(p.read_bytes()).hexdigest()=='814331d088032bb4c3fa61cc014789eadeed464209dd094ab3a2dd6ffbdce27a'"
+ENV VOICESCOPE_MODEL=aasist-l
+USER appuser
