@@ -47,6 +47,7 @@ RUN python -m pip install --no-cache-dir 'transformers==4.57.6' 'safetensors==0.
 COPY tools/export_antideepfake.py /build/export_antideepfake.py
 RUN python /build/export_antideepfake.py --fetch --source /opt/source --output /opt/export
 
+# Q4 weights with FP32 activations avoid dynamic INT8 saturation on heterogeneous CPUs.
 # Production runs ONNX only; large training libraries stay in the build stage.
 FROM runtime AS web
 USER root

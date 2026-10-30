@@ -1,4 +1,4 @@
-"""Build an INT8 deployment copy of the pinned NII research checkpoint.
+"""Build a Q4 deployment copy of the pinned NII research checkpoint.
 Original weights: NII Yamagishi Lab, CC BY-NC-SA 4.0. No training or user audio.
 """
 import json,re
@@ -46,7 +46,7 @@ def load_model(source):
 
 if __name__ == '__main__':
     import argparse,hashlib,urllib.request,logging
-    from onnxruntime.quantization import quantize_dynamic,QuantType
+    from onnxruntime.quantization.matmul_4bits_quantizer import MatMul4BitsQuantizer
     parser=argparse.ArgumentParser()
     parser.add_argument('--source',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
@@ -70,17 +70,19 @@ if __name__ == '__main__':
     model=load_model(args.source)
     # Export uses public weights and a synthetic tensor only. No microphone data.
     sample=torch.zeros(1,64600)
-    fp=args.source/'model.onnx';quant=args.output/'model_int8.onnx'
+    fp=args.source/'model.onnx';quant=args.output/'model_q4.onnx'
     torch.onnx.export(model,(sample,),str(fp),input_names=['input_values'],output_names=['logits'],
                       dynamic_axes={'input_values':{0:'batch',1:'samples'},'logits':{0:'batch'}},
                       opset_version=17,dynamo=False)
-    quantize_dynamic(str(fp),str(quant),weight_type=QuantType.QInt8,
-                     op_types_to_quantize=['MatMul'],per_channel=True)
-    manifest={'model':'NII AntiDeepfake Wav2Vec2-Small INT8','upstream':repo,'revision':revision,
+    logging.getLogger('onnxruntime.quantization.matmul_4bits_quantizer').setLevel(logging.ERROR)
+    quantizer=MatMul4BitsQuantizer(str(fp),block_size=32,is_symmetric=True,accuracy_level=1)
+    quantizer.process()
+    quantizer.model.save_model_to_file(str(quant),use_external_data_format=False)
+    manifest={'model':'NII AntiDeepfake Wav2Vec2-Small Q4','upstream':repo,'revision':revision,
               'source_sha256':hashes['model.safetensors'],'sha256':sha(quant),
               'labels':['fake','real'],'normalize_epsilon':1e-5,
               'license':'CC-BY-NC-SA-4.0','license_url':'https://creativecommons.org/licenses/by-nc-sa/4.0/',
-              'modification':'Fairseq state mapping to Transformers; ONNX export; dynamic INT8 MatMul quantization; no retraining'}
+              'modification':'Fairseq state mapping to Transformers; ONNX export; 4-bit MatMul weights, FP32 activation compute; no retraining'}
     (args.output/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
     (args.output/'model-card.md').write_bytes((args.source/'README.md').read_bytes())
     print(json.dumps(manifest),flush=True)

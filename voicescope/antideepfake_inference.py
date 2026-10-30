@@ -12,12 +12,12 @@ from .audio import decode
 class AntiDeepfakeService:
     def __init__(self,cfg):
         self.cfg=cfg;self.model=None;self.status='load_error';self.error=None
-        self.model_name='NII AntiDeepfake Wav2Vec2-Small INT8'
+        self.model_name='NII AntiDeepfake Wav2Vec2-Small Q4'
         try:
             import onnxruntime as ort
             folder=Path(os.getenv('VOICESCOPE_ANTIDEEPFAKE_DIR','/opt/models/antideepfake'))
             metadata=json.loads((folder/'manifest.json').read_text(encoding='utf-8'))
-            path=folder/'model_int8.onnx'
+            path=folder/'model_q4.onnx'
             digest=hashlib.sha256()
             with path.open('rb') as stream:
                 for block in iter(lambda:stream.read(1024*1024),b''):digest.update(block)
@@ -26,6 +26,7 @@ class AntiDeepfakeService:
                 raise ValueError('Invalid model provenance/checksum')
             options=ort.SessionOptions();options.intra_op_num_threads=1;options.inter_op_num_threads=1
             options.enable_cpu_mem_arena=False;options.enable_mem_pattern=False
+            options.graph_optimization_level=ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
             self.model=ort.InferenceSession(str(path),sess_options=options,providers=['CPUExecutionProvider'])
             self.status='ready'
         except Exception as exc:
@@ -58,4 +59,4 @@ class AntiDeepfakeService:
                 'model':self.model_name,'license':'CC-BY-NC-SA-4.0',
                 'timing_ms':{'preprocessing':(prep-begin)*1000,'model':(finish-prep)*1000,
                              'server_compute':(finish-begin)*1000},
-                'notice':'Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản INT8. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định.'}
+                'notice':'Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định.'}
