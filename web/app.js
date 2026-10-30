@@ -54,12 +54,14 @@ async function health(attempt = 0) {
     if (!response.ok) throw new Error('health'); const data = await response.json();
     ready = data.model_ready === true; maxBytes = data.max_upload_bytes; maxDuration = data.max_duration_seconds;
     $('limits').textContent = `WAV, FLAC · tối đa ${(maxBytes / 1048576).toFixed(0)} MB · ${maxDuration} giây`;
-    $('model-status').textContent = data.message;
-    $('model-help').textContent = ready ? `${data.model || 'Detector'} đã nạp. Sẵn sàng phân tích âm thanh.` : 'Bạn vẫn có thể chọn tệp và nghe thử. Phân tích sẽ mở khi mô hình sẵn sàng.';
+    $('readiness').hidden = ready;
+    $('model-status').textContent = ready ? '' : data.message;
+    $('model-help').textContent = ready ? '' : 'Bạn vẫn có thể chọn tệp và nghe thử. Phân tích sẽ mở khi mô hình sẵn sàng.';
     if (ready) { $('empty-result').querySelector('h3').textContent = 'Chưa có audio để phân tích'; $('empty-result').querySelector('p').textContent = 'Chọn tệp rồi bấm phân tích để nhận kết quả từ máy chủ.'; $('empty-result').querySelector('.pill').textContent = 'Mô hình đã cấu hình'; }
     else if (data.status === 'load_error') $('model-help').textContent += ' · Không nạp được checkpoint, hãy kiểm tra cấu hình máy chủ.';
   } catch {
     ready = false;
+    $('readiness').hidden = false;
     $('model-status').textContent = 'Đang chờ máy chủ phản hồi';
     $('model-help').textContent = 'Máy chủ có thể đang khởi động. Bạn vẫn có thể chọn tệp và nghe thử.';
     if (attempt < 5) healthRetryTimer = setTimeout(() => health(attempt + 1), [2000, 5000, 10000, 20000, 30000][attempt]);
@@ -74,7 +76,6 @@ function renderReport(report) {
   $('score').textContent = `${(report.fake_score * 100).toFixed(1)} / 100`; $('score-bar').style.width = `${report.fake_score * 100}%`;
   $('result-duration').textContent = `${report.duration_seconds.toFixed(2)} s`;
   $('latency').textContent = `${report.timing_ms.server_compute.toFixed(1)} ms`;
-  $('result-notice').textContent = report.notice;
 }
 $('analyze').addEventListener('click', async () => {
   if (!selected || !ready || busy) return;
@@ -83,7 +84,7 @@ $('analyze').addEventListener('click', async () => {
   try {
     const response = await fetch('/inference', {method: 'POST', headers: {'Content-Type': /\.flac$/i.test(selected.name) ? 'audio/flac' : 'audio/wav'}, body: selected, signal: controller.signal});
     const result = await response.json(); if (!response.ok) throw new Error(result.detail || 'Máy chủ không thể phân tích.');
-    renderReport(result); message('Phân tích hoàn tất. Kết quả được trả từ API.');
+    renderReport(result); message('');
   } catch (error) { message(error.name === 'AbortError' ? 'Hết thời gian chờ. Máy chủ có thể vẫn đang xử lý; hãy thử lại sau.' : error.message, true); }
   finally { clearTimeout(timeout); busy = false; $('progress').hidden = true; buttons(); }
 });
