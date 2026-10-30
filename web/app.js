@@ -49,7 +49,9 @@ let healthRetryTimer;
 async function health(attempt = 0) {
   clearTimeout(healthRetryTimer);
   try {
-    const response = await fetch('/health'); if (!response.ok) throw new Error('health'); const data = await response.json();
+    let response = await fetch('/api/status');
+    if (response.status === 404) response = await fetch('/health');
+    if (!response.ok) throw new Error('health'); const data = await response.json();
     ready = data.model_ready === true; maxBytes = data.max_upload_bytes; maxDuration = data.max_duration_seconds;
     $('limits').textContent = `WAV, FLAC · tối đa ${(maxBytes / 1048576).toFixed(0)} MB · ${maxDuration} giây`;
     $('model-status').textContent = data.message;

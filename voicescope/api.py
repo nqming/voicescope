@@ -44,7 +44,7 @@ def create_app(config=None,web_settings=None):
         response.headers['X-Frame-Options']='DENY'
         response.headers['Referrer-Policy']='no-referrer'
         response.headers['Permissions-Policy']='microphone=(self), camera=(), geolocation=()'
-        if request.url.path in {'/','/health','/ready','/inference'}:
+        if request.url.path in {'/','/health','/api/status','/ready','/inference'}:
             response.headers['Cache-Control']='no-store'
         if request.url.path=='/':
             response.headers['Content-Security-Policy']=(
@@ -53,6 +53,7 @@ def create_app(config=None,web_settings=None):
                 "frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         return response
 
+    @app.get('/api/status')
     @app.get('/health')
     def health():
         service=app.state.service
