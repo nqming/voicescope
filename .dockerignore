@@ -10,3 +10,6 @@
 !web/*.js
 !configs/
 !configs/default.json
+
+!tools/
+!tools/export_antideepfake.py

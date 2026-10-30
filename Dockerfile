@@ -39,10 +39,18 @@ RUN python -m pip install --no-cache-dir 'torch==2.7.1' --index-url https://down
 ENV VOICESCOPE_DINOV3_REPO=/opt/dinov3
 USER appuser
 
-# Default target remains the lightweight web/API image without ML dependencies.
-FROM runtime AS web
+# Export the public research checkpoint at build time. No user audio enters this stage.
+FROM runtime AS antideepfake-build
 USER root
 RUN python -m pip install --no-cache-dir 'torch==2.7.1' --index-url https://download.pytorch.org/whl/cpu
-RUN mkdir -p /opt/models && python -c "import urllib.request,hashlib,pathlib; p=pathlib.Path('/opt/models/AASIST-L.pth'); urllib.request.urlretrieve('https://raw.githubusercontent.com/clovaai/aasist/a04c9863f63d44471dde8a6abcb3b082b07cd1d1/models/weights/AASIST-L.pth',p); assert hashlib.sha256(p.read_bytes()).hexdigest()=='814331d088032bb4c3fa61cc014789eadeed464209dd094ab3a2dd6ffbdce27a'"
-ENV VOICESCOPE_MODEL=aasist-l
+RUN python -m pip install --no-cache-dir 'transformers==4.57.6' 'safetensors==0.8.0' 'onnx==1.23.2' 'onnxruntime==1.20.1'
+COPY tools/export_antideepfake.py /build/export_antideepfake.py
+RUN python /build/export_antideepfake.py --fetch --source /opt/source --output /opt/export
+
+# Production runs ONNX only; large training libraries stay in the build stage.
+FROM runtime AS web
+USER root
+RUN python -m pip install --no-cache-dir 'onnxruntime==1.20.1'
+COPY --from=antideepfake-build /opt/export /opt/models/antideepfake
+ENV VOICESCOPE_MODEL=antideepfake-int8
 USER appuser

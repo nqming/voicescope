@@ -105,27 +105,68 @@ function wavFile(buffer) {
   for (let i = 0; i < mono.length; i++) { const value = Math.max(-1, Math.min(1, mono[i])); view.setInt16(44 + i * 2, value * (value < 0 ? 32768 : 32767), true); }
   return new File([bytes], 'ghi-am-cuc-bo.wav', {type: 'audio/wav'});
 }
-function stopRecording() { if (recorder && recorder.state !== 'inactive') recorder.stop(); clearTimeout(recordTimer); if (recordStream) recordStream.getTracks().forEach(track => track.stop()); }
+let captureContext = null, captureNode = null, captureSource = null, captureMute = null;
+let pcmChunks = [], capturedSamples = 0, finishingRecording = false;
+function releaseMicrophone() {
+  if (recordStream) recordStream.getTracks().forEach(track => track.stop());
+  captureSource?.disconnect(); captureNode?.disconnect(); captureMute?.disconnect();
+  if (captureContext) captureContext.close().catch(() => {});
+  captureContext = captureNode = captureSource = captureMute = recordStream = null;
+}
+function stopRecording() {
+  clearTimeout(recordTimer);
+  if (!captureNode || finishingRecording) return;
+  finishingRecording = true;
+  captureNode.port.postMessage('stop');
+}
+async function finishPCMRecording() {
+  const sampleRate = captureContext.sampleRate;
+  const pcm = new Float32Array(capturedSamples);
+  let offset = 0;
+  for (const chunk of pcmChunks) { pcm.set(chunk, offset); offset += chunk.length; }
+  releaseMicrophone(); pcmChunks = []; capturedSamples = 0;
+  recording = false; finishingRecording = false;
+  $('record').textContent = '● Bắt đầu ghi âm';
+  try {
+    if (!pcm.length) throw new Error('empty');
+    await selectFile(wavFile({length: pcm.length, sampleRate, numberOfChannels: 1, getChannelData: () => pcm}));
+    $('record-status').textContent = 'Đã thu PCM trực tiếp. Bản ghi chưa được gửi đi.';
+  } catch { $('record-status').textContent = 'Không thu được âm thanh. Hãy thử ghi lại.'; }
+  finally { buttons(); }
+}
 $('record').addEventListener('click', async () => {
   if (recording) { stopRecording(); return; }
-  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { $('record-status').textContent = 'Ghi âm cần trình duyệt hỗ trợ và localhost/HTTPS.'; return; }
+  if (!navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) {
+    $('record-status').textContent = 'Ghi âm PCM cần trình duyệt mới và HTTPS.'; return;
+  }
   $('record').disabled = true;
   try {
-    recordStream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: false, noiseSuppression: false, autoGainControl: false}});
-    recorder = new MediaRecorder(recordStream); const chunks = []; let bytes = 0;
-    recorder.ondataavailable = e => { bytes += e.data.size; chunks.push(e.data); if (bytes > maxBytes) stopRecording(); };
-    recorder.onstop = async () => {
-      clearTimeout(recordTimer); recordStream.getTracks().forEach(track => track.stop());
-      let context;
-      try { context = new AudioContext(); const buffer = await context.decodeAudioData(await new Blob(chunks, {type: recorder.mimeType}).arrayBuffer()); recording = false; await selectFile(wavFile(buffer)); $('record-status').textContent = 'Đã dừng. Bản ghi chưa được gửi đi.'; }
-      catch { $('record-status').textContent = 'Không chuyển được bản ghi sang WAV; hãy chọn tệp WAV/FLAC.'; }
-      finally { recording = false; recorder = null; $('record').textContent = '● Bắt đầu ghi âm'; if (context) await context.close(); buttons(); }
+    recordStream = await navigator.mediaDevices.getUserMedia({audio: {channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false}});
+    captureContext = new AudioContext();
+    await captureContext.audioWorklet.addModule('/static/pcm-recorder.js');
+    await captureContext.resume();
+    captureSource = captureContext.createMediaStreamSource(recordStream);
+    captureNode = new AudioWorkletNode(captureContext, 'pcm-recorder');
+    captureMute = captureContext.createGain(); captureMute.gain.value = 0;
+    pcmChunks = []; capturedSamples = 0; finishingRecording = false;
+    captureNode.port.onmessage = event => {
+      if (event.data.samples) {
+        const remaining = Math.max(0, Math.min(Math.floor(maxDuration * captureContext.sampleRate), Math.floor((maxBytes - 44) / 2)) - capturedSamples);
+        const block = event.data.samples.subarray(0, remaining);
+        if (block.length) { pcmChunks.push(block); capturedSamples += block.length; }
+        if (block.length < event.data.samples.length) stopRecording();
+      }
+      if (event.data.stopped) finishPCMRecording();
     };
-    recording = true; clearResult(); recorder.start(250); recordTimer = setTimeout(stopRecording, maxDuration * 1000);
-    $('record').textContent = '■ Dừng ghi âm'; $('record-status').textContent = `Đang ghi âm · tự dừng sau ${maxDuration} giây. Có thể thiết bị vẫn áp dụng xử lý âm thanh.`;
-  } catch { if (recordStream) recordStream.getTracks().forEach(track => track.stop()); $('record-status').textContent = 'Không có quyền hoặc không tìm thấy microphone.'; }
-  finally { buttons(); }
+    captureSource.connect(captureNode); captureNode.connect(captureMute); captureMute.connect(captureContext.destination);
+    recording = true; clearResult(); recordTimer = setTimeout(stopRecording, maxDuration * 1000);
+    $('record').textContent = '■ Dừng ghi âm';
+    $('record-status').textContent = `Đang ghi PCM trực tiếp · tự dừng sau ${maxDuration} giây.`;
+  } catch {
+    releaseMicrophone(); recording = false; finishingRecording = false;
+    $('record-status').textContent = 'Không mở được microphone hoặc bộ thu PCM. Kiểm tra quyền và thử lại.';
+  } finally { buttons(); }
 });
 $('download').addEventListener('click', () => { if (!currentReport) return; const url = URL.createObjectURL(new Blob([JSON.stringify(currentReport, null, 2)], {type: 'application/json'})); const link = document.createElement('a'); link.href = url; link.download = 'voicescope-report.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); });
-window.addEventListener('beforeunload', () => { stopRecording(); if (audioURL) URL.revokeObjectURL(audioURL); });
+window.addEventListener('beforeunload', () => { releaseMicrophone(); if (audioURL) URL.revokeObjectURL(audioURL); });
 health();

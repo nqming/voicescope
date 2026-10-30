@@ -27,6 +27,9 @@ def create_app(config=None,web_settings=None):
         if os.getenv('VOICESCOPE_MODEL') == 'aasist-l':
             from .aasist_inference import AASISTService
             service_class = AASISTService
+        elif os.getenv('VOICESCOPE_MODEL') == 'antideepfake-int8':
+            from .antideepfake_inference import AntiDeepfakeService
+            service_class = AntiDeepfakeService
         app.state.service=await run_in_threadpool(service_class,cfg)
         app.state.busy=False
         yield
