@@ -56,7 +56,7 @@ def create_app(config=None,web_settings=None):
     @app.get('/health')
     def health():
         service=app.state.service
-        return {'status':service.status,'model_ready':service.ready,'version':settings.version,
+        return {'status':service.status,'model_ready':service.ready,'model':getattr(service,'model_name',None),'version':settings.version,
                 'message':'Sẵn sàng phân tích' if service.ready else 'Chưa cấu hình mô hình',
                 'max_upload_bytes':cfg.max_upload_bytes,'max_duration_seconds':cfg.max_duration,
                 'formats':['wav','flac'],'retention':'RAM only; released after request; no audio logging'}

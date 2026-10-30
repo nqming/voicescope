@@ -45,16 +45,24 @@ async function selectFile(file) {
     message('Trình duyệt chưa giải mã được tệp; API sẽ kiểm tra định dạng và thời lượng.', true);
   } finally { if (context) await context.close(); buttons(); }
 }
-async function health() {
+let healthRetryTimer;
+async function health(attempt = 0) {
+  clearTimeout(healthRetryTimer);
   try {
     const response = await fetch('/health'); if (!response.ok) throw new Error('health'); const data = await response.json();
     ready = data.model_ready === true; maxBytes = data.max_upload_bytes; maxDuration = data.max_duration_seconds;
     $('limits').textContent = `WAV, FLAC · tối đa ${(maxBytes / 1048576).toFixed(0)} MB · ${maxDuration} giây`;
     $('model-status').textContent = data.message;
-    $('model-help').textContent = ready ? 'Checkpoint detector đã nạp. Kết quả chỉ xuất hiện sau khi gọi API.' : 'Bạn vẫn có thể chọn tệp và nghe thử. Phân tích sẽ mở khi mô hình sẵn sàng.';
+    $('model-help').textContent = ready ? `${data.model || 'Detector'} đã nạp. Sẵn sàng phân tích âm thanh.` : 'Bạn vẫn có thể chọn tệp và nghe thử. Phân tích sẽ mở khi mô hình sẵn sàng.';
     if (ready) { $('empty-result').querySelector('h3').textContent = 'Chưa có audio để phân tích'; $('empty-result').querySelector('p').textContent = 'Chọn tệp rồi bấm phân tích để nhận kết quả từ máy chủ.'; $('empty-result').querySelector('.pill').textContent = 'Mô hình đã cấu hình'; }
     else if (data.status === 'load_error') $('model-help').textContent += ' · Không nạp được checkpoint, hãy kiểm tra cấu hình máy chủ.';
-  } catch { ready = false; $('model-status').textContent = 'Không kết nối được máy chủ'; $('model-help').textContent = 'Chạy API VoiceScope rồi tải lại trang. Chưa có mô hình hoặc dữ liệu để phân tích.'; }
+  } catch {
+    ready = false;
+    $('model-status').textContent = 'Đang chờ máy chủ phản hồi';
+    $('model-help').textContent = 'Máy chủ có thể đang khởi động. Bạn vẫn có thể chọn tệp và nghe thử.';
+    if (attempt < 5) healthRetryTimer = setTimeout(() => health(attempt + 1), [2000, 5000, 10000, 20000, 30000][attempt]);
+    else $('model-help').textContent = 'Chưa kết nối được máy chủ. Hãy tải lại trang để thử lại.';
+  }
   buttons();
 }
 function renderReport(report) {

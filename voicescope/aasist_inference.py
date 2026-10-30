@@ -13,6 +13,7 @@ WEIGHTS_SHA256 = '814331d088032bb4c3fa61cc014789eadeed464209dd094ab3a2dd6ffbdce2
 class AASISTService:
     def __init__(self, cfg):
         self.cfg = cfg
+        self.model_name = "AASIST-L"
         self.status = 'load_error'
         self.model = None
         self.error = None
