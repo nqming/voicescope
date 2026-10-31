@@ -10,125 +10,15 @@
     "skipped": 2
   },
   "ci": {
-    "id": 41160259928,
-    "head_sha": "cf09394c83097a5e2c0f6290ac144e795fdfa144",
+    "id": 41185814386,
+    "head_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
     "status": "completed",
     "conclusion": "success",
-    "html_url": "https://github.com/nqming/voicescope/actions/runs/41160259928",
-    "jobs": [
-      {
-        "name": "tests",
-        "conclusion": "success",
-        "steps": [
-          {
-            "name": "Set up job",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run python -m pip install -r requirements-ci.txt",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run python -m pytest -q",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run node tests/test_pcm_capture.cjs",
-            "conclusion": "success"
-          },
-          {
-            "name": "Post Run actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444",
-            "conclusion": "success"
-          },
-          {
-            "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
-            "conclusion": "success"
-          },
-          {
-            "name": "Post Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
-            "conclusion": "success"
-          },
-          {
-            "name": "Complete job",
-            "conclusion": "success"
-          }
-        ]
-      },
-      {
-        "name": "image",
-        "conclusion": "success",
-        "steps": [
-          {
-            "name": "Set up job",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
-            "conclusion": "success"
-          },
-          {
-            "name": "Build CPU inference image (no publishing credentials)",
-            "conclusion": "success"
-          },
-          {
-            "name": "Run hardened container and real model execution",
-            "conclusion": "success"
-          },
-          {
-            "name": "Publishing configuration status",
-            "conclusion": "success"
-          },
-          {
-            "name": "Login only after validation on trusted release pushes",
-            "conclusion": "skipped"
-          },
-          {
-            "name": "Publish tested image",
-            "conclusion": "skipped"
-          },
-          {
-            "name": "Container logs on failure",
-            "conclusion": "skipped"
-          },
-          {
-            "name": "Test evidence",
-            "conclusion": "success"
-          },
-          {
-            "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
-            "conclusion": "success"
-          },
-          {
-            "name": "Post Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
-            "conclusion": "success"
-          },
-          {
-            "name": "Complete job",
-            "conclusion": "success"
-          }
-        ]
-      }
-    ]
+    "html_url": "https://github.com/nqming/voicescope/actions/runs/41185814386"
   },
-  "local_image": "voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144",
-  "local_image_id": "sha256:86beb401656b893088467a32f5d49af11bec0d9c331e125c7f0271c62f2fbc8f",
-  "local_image_bytes": 833850413,
+  "local_image": "qminh19/voicescope:v0.2.0",
+  "local_image_id": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
+  "local_image_bytes": 833850217,
   "model_bytes": 89730755,
   "tts": {
     "url": "http://127.0.0.1:18080",
@@ -147,17 +37,17 @@
       "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
       "license": "CC-BY-NC-SA-4.0",
       "timing_ms": {
-        "preprocessing": 3.5646099999979697,
-        "model": 1155.9932440000011,
-        "server_compute": 1159.5578539999992,
-        "server_request": 1160.6451120000115
+        "preprocessing": 3.521525000003578,
+        "model": 1147.8447619999984,
+        "server_compute": 1151.3662870000019,
+        "server_request": 1153.4182469999976
       },
       "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
     },
     "scope": "Container API execution; not a general accuracy benchmark"
   },
-  "publish": "blocked by automatic review; needs explicit confirmation for stored PAT transfer and public repository creation",
-  "deploy": "template only; current Render unchanged",
+  "publish": "success: v0.2.0, latest and SHA tag published by CI; anonymous pull verified",
+  "deploy": "pending Render connection; existing service unchanged",
   "commands_verified": [
     "python -m pytest -q",
     "node tests/test_pcm_capture.cjs",
@@ -170,20 +60,24 @@
     "docker compose -f compose.production.yaml config --quiet",
     "bash -n (script bytes passed to Docker container, no deploy)",
     "docker build --target web --build-arg VCS_REF=cf09394c83097a5e2c0f6290ac144e795fdfa144 --tag voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144 --progress plain . (clean checkout)",
-    "main image: readiness, synthetic inference, TTS expected fake, payload audit, source/version label checks"
+    "main image: readiness, synthetic inference, TTS expected fake, payload audit, source/version label checks",
+    "docker --config tmp/docker-public-v020 pull qminh19/voicescope:v0.2.0",
+    "run public image by digest, readiness, synthetic inference, TTS expected fake and image payload audit"
   ],
   "latest_release": {
-    "source_sha": "cf09394c83097a5e2c0f6290ac144e795fdfa144",
-    "source_clean_at_build": true,
-    "tag": "voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144",
-    "local_id": "sha256:86beb401656b893088467a32f5d49af11bec0d9c331e125c7f0271c62f2fbc8f",
-    "bytes": 833850413,
-    "platform": "linux/amd64",
+    "repository": "qminh19/voicescope",
+    "url": "https://hub.docker.com/r/qminh19/voicescope",
+    "version": "v0.2.0",
+    "digest": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
+    "source_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+    "anonymous_pull": true,
+    "bytes": 833850217,
+    "local_id": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
     "health": {
       "status": "ready",
       "model_ready": true,
       "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
-      "version": "cf09394c83097a5e2c0f6290ac144e795fdfa144",
+      "version": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
       "message": "Sẵn sàng phân tích",
       "max_upload_bytes": 20971520,
       "max_duration_seconds": 120.0,
@@ -193,7 +87,48 @@
       ],
       "retention": "RAM only; released after request; no audio logging"
     },
-    "registry_digest": null,
-    "published": false
-  }
+    "published": true,
+    "platform": "linux/amd64",
+    "ci": {
+      "id": 41185814386,
+      "head_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/nqming/voicescope/actions/runs/41185814386"
+    }
+  },
+  "public_release": {
+    "repository": "qminh19/voicescope",
+    "url": "https://hub.docker.com/r/qminh19/voicescope",
+    "version": "v0.2.0",
+    "digest": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
+    "source_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+    "anonymous_pull": true,
+    "bytes": 833850217,
+    "local_id": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
+    "health": {
+      "status": "ready",
+      "model_ready": true,
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "version": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+      "message": "Sẵn sàng phân tích",
+      "max_upload_bytes": 20971520,
+      "max_duration_seconds": 120.0,
+      "formats": [
+        "wav",
+        "flac"
+      ],
+      "retention": "RAM only; released after request; no audio logging"
+    },
+    "published": true,
+    "platform": "linux/amd64",
+    "ci": {
+      "id": 41185814386,
+      "head_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/nqming/voicescope/actions/runs/41185814386"
+    }
+  },
+  "registry_digest": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95"
 }
