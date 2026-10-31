@@ -23,7 +23,14 @@ def create_app(config=None,web_settings=None):
     limiter=InferenceRateLimit(settings.inference_per_minute)
     @asynccontextmanager
     async def lifespan(app):
-        app.state.service=await run_in_threadpool(InferenceService,cfg)
+        service_class = InferenceService
+        if os.getenv('VOICESCOPE_MODEL') == 'aasist-l':
+            from .aasist_inference import AASISTService
+            service_class = AASISTService
+        elif os.getenv('VOICESCOPE_MODEL') == 'antideepfake-int8':
+            from .antideepfake_inference import AntiDeepfakeService
+            service_class = AntiDeepfakeService
+        app.state.service=await run_in_threadpool(service_class,cfg)
         app.state.busy=False
         yield
     app=FastAPI(title='VoiceScope',lifespan=lifespan)
@@ -40,7 +47,7 @@ def create_app(config=None,web_settings=None):
         response.headers['X-Frame-Options']='DENY'
         response.headers['Referrer-Policy']='no-referrer'
         response.headers['Permissions-Policy']='microphone=(self), camera=(), geolocation=()'
-        if request.url.path in {'/','/health','/ready','/inference'}:
+        if request.url.path in {'/','/health','/api/status','/ready','/inference'}:
             response.headers['Cache-Control']='no-store'
         if request.url.path=='/':
             response.headers['Content-Security-Policy']=(
@@ -49,10 +56,11 @@ def create_app(config=None,web_settings=None):
                 "frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         return response
 
+    @app.get('/api/status')
     @app.get('/health')
     def health():
         service=app.state.service
-        return {'status':service.status,'model_ready':service.ready,'version':settings.version,
+        return {'status':service.status,'model_ready':service.ready,'model':getattr(service,'model_name',None),'version':settings.version,
                 'message':'Sẵn sàng phân tích' if service.ready else 'Chưa cấu hình mô hình',
                 'max_upload_bytes':cfg.max_upload_bytes,'max_duration_seconds':cfg.max_duration,
                 'formats':['wav','flac'],'retention':'RAM only; released after request; no audio logging'}

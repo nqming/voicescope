@@ -33,7 +33,7 @@ def check_url(base_url,expected='unconfigured',timeout=15):
         raise ValueError('Trang chủ không mở đúng VoiceScope.')
     checks.append('homepage')
     status,script=fetch('/static/app.js')
-    if status!=200 or "fetch('/health')" not in script or "fetch('/inference'" not in script:
+    if status!=200 or "fetch('/api/status')" not in script or "fetch('/inference'" not in script:
         raise ValueError('Frontend chưa nối API cùng origin.')
     checks.append('frontend_api_routes')
     status,body=fetch('/health')

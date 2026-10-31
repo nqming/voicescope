@@ -1,12 +1,22 @@
-# Allowlist: large data never even enters the build context.
+# Default deny; re-exclude directory contents before whitelisting files.
 **
 !Dockerfile
 !requirements-runtime.txt
+!MODEL-NOTICE.md
 !voicescope/
+voicescope/**
 !voicescope/*.py
 !web/
+web/**
 !web/*.html
 !web/*.css
 !web/*.js
 !configs/
+configs/**
 !configs/default.json
+!tools/
+tools/**
+!tools/export_antideepfake.py
+!licenses/
+licenses/**
+!licenses/CC-BY-NC-SA-4.0.txt

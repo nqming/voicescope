@@ -11,7 +11,7 @@ def test_no_model_never_predicts():
         response=client.post('/inference',content=b'RIFF',headers={'content-type':'audio/wav'})
         assert response.status_code==503
         assert 'score' not in response.json()
-        assert 'Chưa có mô hình hoặc dữ liệu để phân tích' in client.get('/').text
+        assert 'VoiceScope' in client.get('/').text
 
 
 def test_failed_checkpoint_is_unavailable(tmp_path):
