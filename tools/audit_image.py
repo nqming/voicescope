@@ -6,7 +6,7 @@ CHECK = r"""
 import hashlib,importlib.util,json,pathlib,os
 root=pathlib.Path('/app')
 files=[p for p in root.rglob('*') if p.is_file()]
-bad=[str(p) for p in files if any(x in p.parts for x in ['.git','data','tmp','.venv','.aws','.docker']) or p.suffix.lower() in ['.wav','.flac','.mp3','.pem','.key','.pth','.pt','.safetensors'] or p.name.startswith('.env')]
+bad=[str(p) for p in files if any(x in p.parts for x in ['.git','data','tmp','.venv','.aws','.docker','__pycache__']) or p.suffix.lower() in ['.wav','.flac','.mp3','.pem','.key','.pth','.pt','.safetensors'] or p.name.startswith('.env')]
 assert not bad,bad
 assert os.getuid()!=0
 assert importlib.util.find_spec('torch') is None
