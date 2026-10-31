@@ -39,3 +39,5 @@ vendor/
 *.tar.gz
 # User-supplied reference PDFs are kept locally, not redistributed.
 *.pdf
+
+.deploy-state/

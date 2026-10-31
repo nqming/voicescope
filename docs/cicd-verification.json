@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-31",
+  "workspace": "D:\\Codex\\BTTHCDTTNT",
+  "local_python_tests": {
+    "passed": 25,
+    "skipped": 1
+  },
+  "linux_ci_tests": {
+    "passed": 23,
+    "skipped": 2
+  },
+  "ci": {
+    "id": 41159251802,
+    "head_sha": "a02aa509b5281e24463c4c80c696b0710a649e66",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/nqming/voicescope/actions/runs/41159251802"
+  },
+  "local_image": "voicescope:cicd-test",
+  "local_image_id": "sha256:c9714f9cf6ac79fdff03513071d5c2dedcb27cc3024fdd1a901f2e8cb0947bf9",
+  "local_image_bytes": 833849767,
+  "model_bytes": 89730755,
+  "tts": {
+    "url": "http://127.0.0.1:8000",
+    "input": "synthetic-tts.wav",
+    "expected_label": "fake",
+    "result": {
+      "label": "fake",
+      "fake_score": 0.9999736547470093,
+      "threshold": 0.5,
+      "duration_seconds": 5.3683125,
+      "temporal_scores": null,
+      "suspicious_segments": [],
+      "scope": "clip",
+      "aggregation": "duration_weighted_window_mean",
+      "spectrogram_mapping": [],
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "license": "CC-BY-NC-SA-4.0",
+      "timing_ms": {
+        "preprocessing": 3.402249000032498,
+        "model": 1191.8914689999838,
+        "server_compute": 1195.2937180000163,
+        "server_request": 1196.5884640000013
+      },
+      "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
+    },
+    "scope": "Container API execution; not a general accuracy benchmark"
+  },
+  "publish": "blocked pending explicit approval by automatic review",
+  "deploy": "template only; current Render unchanged",
+  "commands_verified": [
+    "python -m pytest -q",
+    "node tests/test_pcm_capture.cjs",
+    "docker build --target web --build-arg VCS_REF=workspace-cicd --tag voicescope:cicd-test --progress plain .",
+    "python tools/container_smoke.py",
+    "python tools/container_smoke.py --audio tmp/cicd-public-audio/synthetic-tts.wav --expected-label fake --output artifacts/container-tts-smoke.json",
+    "python tools/audit_image.py --image voicescope:cicd-test",
+    "python -m voicescope.smoke --url http://127.0.0.1:8000 --expect ready --output artifacts/container-http-smoke.json",
+    "docker compose config --quiet",
+    "docker compose -f compose.production.yaml config --quiet",
+    "bash -n (script bytes passed to Docker container, no deploy)"
+  ]
+}

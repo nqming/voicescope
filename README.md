@@ -1,5 +1,36 @@
+# Trạng thái triển khai hiện tại - VoiceScope
+
+Ứng dụng web/API hiện dùng NII AntiDeepfake Wav2Vec2-Small ONNX Q4 trên CPU, không cần GPU hoặc huấn luyện lại. Web: https://voicescope-581u.onrender.com. Docker target `web` đóng gói model theo revision cố định và chạy bằng user không có quyền root.
+
+Hướng dẫn CI/CD và Docker mới: [Markdown](docs/huong-dan-cicd-docker-ai.md) và [PDF](docs/huong-dan-cicd-docker-ai.pdf). Giấy phép model: [MODEL-NOTICE.md](MODEL-NOTICE.md), CC BY-NC-SA 4.0, phi thương mại.
+
+Workflow kiểm tra PR không nhận secrets publish. Publish Docker Hub và deploy server là các bước riêng; trạng thái kiểm chứng cụ thể nằm trong hướng dẫn, không suy ra thành công chỉ từ cấu hình.
+
+## Tài liệu nghiên cứu và lịch sử phiên bản đầu
+
+Các phần bên dưới ghi lại thiết kế DINOv3 và trạng thái ban đầu; không mô tả model của Docker target `web` hiện tại.
+
 # VoiceScope — nghiên cứu phát hiện giọng nói giả mạo tiếng Việt
 
+**Trạng thái hiện tại: đã có ASVspoof 2019 LA và Vietnam-Celeb cục bộ;
+chưa có detector đã huấn luyện hoặc checkpoint.** Dữ liệu còn cần import metadata,
+QC và kiểm tra split/quyền sử dụng trước train. Không có accuracy/F1/EER để báo cáo. UI hiển thị
+**“Chưa có mô hình hoặc dữ liệu để phân tích”**, API trả 503 cho suy luận khi chưa cấu hình.
+Pretrained DINOv3 thị giác tự nó **không phải** detector giọng nói giả.
+
+**Đính chính yêu cầu số 3: “link deploy hệ thống” là URL ứng dụng sau triển khai,
+không phải “link delay” hoặc phép đo latency.** Benchmark giữ là công cụ tùy chọn.
+Đã chuẩn bị Docker/Render cho frontend + API cùng một URL.
+Người dùng đã xác nhận triển khai và mở được web trên Render. URL public chưa được
+cung cấp trong repository để kiểm tra độc lập; web vẫn chờ detector checkpoint.
+Xem [hướng dẫn deploy, cập nhật và checkpoint](docs/deployment.md).
+
+## Bản nộp GitHub: thu thập và xử lý dữ liệu theo pipeline
+
+**Phạm vi bản nộp này: mã pipeline dữ liệu và tài liệu tái lập. Huấn luyện/cấu hình
+mô hình được hoãn theo yêu cầu.** Không có audio, checkpoint hoặc metadata cá nhân
+được đưa vào Git. Hướng dẫn chi tiết theo từng khối trong ảnh:
+[docs/data-pipeline.md](docs/data-pipeline.md).
 
 | Bước cần kiểm tra | File đã bổ sung/có sẵn | Chức năng |
 |---|---|---|
@@ -25,7 +56,18 @@ Chạy kiểm tra collection/import/prepare mà không cần microphone hoặc d
 `requirements-collection.txt` là dependency tùy chọn **chỉ cho ghi microphone thật**;
 ingest/import/prepare không cần cài sounddevice. Template consent mặc định pending,
 không được tự coi là đã có đồng ý. Tín hiệu sin trong tests không dùng báo cáo chất lượng.
+Xem [bằng chứng bản nộp](docs/submission-data-pipeline.md).
 
+## Khảo sát ban đầu
+
+Ngày 18/10/2026, thư mục chỉ chứa `design.png`, `pipeline.png`, `068431-0288open.pdf`
+và `2607.17761v2.pdf`. Không có mã, README, requirements, encoder cũ, dữ liệu,
+checkpoint hoặc `.git`/remote. Bốn tài liệu gốc được giữ nguyên. Đây là xây dựng
+dự án mới, không phải thay backbone của một hệ thống đã hoạt động.
+
+PDF đầu là **TF-C (NeurIPS 2022)**, PDF thứ hai là **TFCL cho speech deepfake dưới AFE**.
+Triển khai DINOv3 dưới đây là hướng nghiên cứu theo yêu cầu, **không phải bản tái lập
+TF-C/TFCL**; không lấy kết quả trong hai bài làm kết quả dự án. Xem [ghi chú nghiên cứu](docs/research.md).
 
 ## Các giai đoạn
 
@@ -287,3 +329,18 @@ cần hoàn thiện: import/QC dữ liệu đã có, quyền sử dụng phù h�
 phần cứng, huấn luyện và đánh giá protocol; hosting/repository để có URL public.
 Không mô phỏng AEC/NS/AGC rồi gọi là WebRTC thật.
 
+## Git/GitHub và cách nộp
+
+Repository hiện tại: [nqming/voicescope](https://github.com/nqming/voicescope).
+Commit nền ứng dụng/deploy: `d4e373e` trên `feature/deploy-voicescope`.
+Bản nộp mã dữ liệu được chuẩn bị trên branch **`feature/data-pipeline-submission`**,
+để review riêng và giữ nguyên branch deploy đang hoạt động.
+
+Nộp **link branch/commit** có README này cùng mã trong `voicescope/`, templates,
+configs, docs và tests. Không chỉ gửi link mặc định nếu default branch chưa có bản mới.
+Mọi kết quả push/commit thực tế được báo ở cuối phiên làm việc; không coi tên branch
+trong tài liệu là bằng chứng đã push nếu lệnh Git thất bại.
+
+Không force-push, không push trực tiếp main/master, không dùng `git add -f` cho audio,
+archives, metadata riêng hoặc weights. Hai ảnh/PDF tham khảo giữ local, không tự
+đưa lên Git khi chưa xác minh quyền phân phối. Dataset chỉ nằm ở `data/` ngoài Git.

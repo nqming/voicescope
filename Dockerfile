@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS runtime
+FROM python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159 AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -39,5 +39,27 @@ RUN python -m pip install --no-cache-dir 'torch==2.7.1' --index-url https://down
 ENV VOICESCOPE_DINOV3_REPO=/opt/dinov3
 USER appuser
 
-# Default target remains the lightweight web/API image without ML dependencies.
+# Export the public research checkpoint at build time. No user audio enters this stage.
+FROM runtime AS antideepfake-build
+USER root
+RUN python -m pip install --no-cache-dir 'torch==2.7.1' --index-url https://download.pytorch.org/whl/cpu
+RUN python -m pip install --no-cache-dir 'transformers==4.57.6' 'safetensors==0.8.0' 'onnx==1.23.2' 'onnxruntime==1.20.1'
+COPY tools/export_antideepfake.py /build/export_antideepfake.py
+RUN python /build/export_antideepfake.py --fetch --source /opt/source --output /opt/export
+
+# Q4 weights with FP32 activations avoid dynamic INT8 saturation on heterogeneous CPUs.
+# Production runs ONNX only; large training libraries stay in the build stage.
 FROM runtime AS web
+ARG VCS_REF=local
+LABEL org.opencontainers.image.title="VoiceScope" \
+      org.opencontainers.image.source="https://github.com/nqming/voicescope" \
+      org.opencontainers.image.revision=$VCS_REF \
+      ai.voicescope.model.license="CC-BY-NC-SA-4.0"
+ENV VOICESCOPE_VERSION=$VCS_REF
+USER root
+RUN python -m pip install --no-cache-dir 'onnxruntime==1.20.1'
+COPY --from=antideepfake-build /opt/export /opt/models/antideepfake
+COPY MODEL-NOTICE.md /opt/models/antideepfake/MODEL-NOTICE.md
+COPY licenses/CC-BY-NC-SA-4.0.txt /opt/models/antideepfake/LICENSE-MODEL.txt
+ENV VOICESCOPE_MODEL=antideepfake-int8
+USER appuser

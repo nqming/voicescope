@@ -1,0 +1,72 @@
+name: CI and Docker Hub
+on:
+  pull_request:
+    paths-ignore: ['docs/**', 'README.md', 'tools/build_cicd_pdf.py']
+  push:
+    branches: [main, 'release/**']
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+      - run: python -m pip install -r requirements-ci.txt
+      - run: python -m pytest -q
+      - run: node tests/test_pcm_capture.cjs
+  image:
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Build CPU inference image (no publishing credentials)
+        run: >-
+          docker buildx build --load --platform linux/amd64 --target web
+          --build-arg VCS_REF="$GITHUB_SHA" --tag voicescope:ci .
+      - name: Run hardened container and real model execution
+        run: |
+          docker run -d --name voicescope-ci --read-only --tmpfs /tmp:size=64m,mode=1777 --cap-drop ALL --security-opt no-new-privileges -p 127.0.0.1:8000:8000 voicescope:ci
+          python tools/container_smoke.py
+          python tools/audit_image.py --image voicescope:ci
+      - name: Publishing configuration status
+        if: github.event_name == 'push' && vars.DOCKERHUB_USERNAME == ''
+        run: echo '::notice::Image validated; Docker Hub publishing is not configured and was skipped.'
+      - name: Login only after validation on trusted release pushes
+        if: vars.DOCKERHUB_USERNAME != '' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/v'))
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish tested image
+        if: vars.DOCKERHUB_USERNAME != '' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/v'))
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: python tools/publish_image.py --image voicescope:ci
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs voicescope-ci || true
+      - name: Test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: container-evidence
+          path: artifacts/*.json
+          if-no-files-found: ignore
