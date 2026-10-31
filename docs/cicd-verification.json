@@ -10,18 +10,128 @@
     "skipped": 2
   },
   "ci": {
-    "id": 41159251802,
-    "head_sha": "a02aa509b5281e24463c4c80c696b0710a649e66",
+    "id": 41160259928,
+    "head_sha": "cf09394c83097a5e2c0f6290ac144e795fdfa144",
     "status": "completed",
     "conclusion": "success",
-    "html_url": "https://github.com/nqming/voicescope/actions/runs/41159251802"
+    "html_url": "https://github.com/nqming/voicescope/actions/runs/41160259928",
+    "jobs": [
+      {
+        "name": "tests",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run python -m pip install -r requirements-ci.txt",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run python -m pytest -q",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run node tests/test_pcm_capture.cjs",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "name": "image",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+            "conclusion": "success"
+          },
+          {
+            "name": "Build CPU inference image (no publishing credentials)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run hardened container and real model execution",
+            "conclusion": "success"
+          },
+          {
+            "name": "Publishing configuration status",
+            "conclusion": "success"
+          },
+          {
+            "name": "Login only after validation on trusted release pushes",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "Publish tested image",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "Container logs on failure",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "Test evidence",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ]
   },
-  "local_image": "voicescope:cicd-test",
-  "local_image_id": "sha256:c9714f9cf6ac79fdff03513071d5c2dedcb27cc3024fdd1a901f2e8cb0947bf9",
-  "local_image_bytes": 833849767,
+  "local_image": "voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144",
+  "local_image_id": "sha256:86beb401656b893088467a32f5d49af11bec0d9c331e125c7f0271c62f2fbc8f",
+  "local_image_bytes": 833850413,
   "model_bytes": 89730755,
   "tts": {
-    "url": "http://127.0.0.1:8000",
+    "url": "http://127.0.0.1:18080",
     "input": "synthetic-tts.wav",
     "expected_label": "fake",
     "result": {
@@ -37,16 +147,16 @@
       "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
       "license": "CC-BY-NC-SA-4.0",
       "timing_ms": {
-        "preprocessing": 3.402249000032498,
-        "model": 1191.8914689999838,
-        "server_compute": 1195.2937180000163,
-        "server_request": 1196.5884640000013
+        "preprocessing": 3.5646099999979697,
+        "model": 1155.9932440000011,
+        "server_compute": 1159.5578539999992,
+        "server_request": 1160.6451120000115
       },
       "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
     },
     "scope": "Container API execution; not a general accuracy benchmark"
   },
-  "publish": "blocked pending explicit approval by automatic review",
+  "publish": "blocked by automatic review; needs explicit confirmation for stored PAT transfer and public repository creation",
   "deploy": "template only; current Render unchanged",
   "commands_verified": [
     "python -m pytest -q",
@@ -58,6 +168,32 @@
     "python -m voicescope.smoke --url http://127.0.0.1:8000 --expect ready --output artifacts/container-http-smoke.json",
     "docker compose config --quiet",
     "docker compose -f compose.production.yaml config --quiet",
-    "bash -n (script bytes passed to Docker container, no deploy)"
-  ]
+    "bash -n (script bytes passed to Docker container, no deploy)",
+    "docker build --target web --build-arg VCS_REF=cf09394c83097a5e2c0f6290ac144e795fdfa144 --tag voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144 --progress plain . (clean checkout)",
+    "main image: readiness, synthetic inference, TTS expected fake, payload audit, source/version label checks"
+  ],
+  "latest_release": {
+    "source_sha": "cf09394c83097a5e2c0f6290ac144e795fdfa144",
+    "source_clean_at_build": true,
+    "tag": "voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144",
+    "local_id": "sha256:86beb401656b893088467a32f5d49af11bec0d9c331e125c7f0271c62f2fbc8f",
+    "bytes": 833850413,
+    "platform": "linux/amd64",
+    "health": {
+      "status": "ready",
+      "model_ready": true,
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "version": "cf09394c83097a5e2c0f6290ac144e795fdfa144",
+      "message": "Sẵn sàng phân tích",
+      "max_upload_bytes": 20971520,
+      "max_duration_seconds": 120.0,
+      "formats": [
+        "wav",
+        "flac"
+      ],
+      "retention": "RAM only; released after request; no audio logging"
+    },
+    "registry_digest": null,
+    "published": false
+  }
 }

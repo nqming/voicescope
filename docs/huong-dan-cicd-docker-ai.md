@@ -204,7 +204,7 @@ PR dùng event pull_request và quyền contents: read. Không dùng pull_reques
 
 Mục đích: kiểm code tự động và truy vết image về commit. File: .github/workflows/ci-docker.yml và tools/publish_image.py. Chạy Git từ checkout dùng cho CI; không add toàn bộ workspace đang có dữ liệu/thay đổi chưa kiểm tra.
 
-Draft PR thực tế: https://github.com/nqming/voicescope/pull/2. Nhánh ci/voicescope-docker tách từ feature/deploy-voicescope để tránh thay đổi bản deploy trực tiếp. Khi cập nhật PR, tests và image job tự chạy. Mở tab Checks hoặc Actions, đọc log bước thất bại; báo cáo JSON nằm trong artifact container-evidence.
+Lịch sử tích hợp: PR #2 đã được thay thế; PR #3 (https://github.com/nqming/voicescope/pull/3) đã merge mã hiện tại vào main. Nhánh ci/voicescope-docker ban đầu tách từ feature/deploy-voicescope. Khi cập nhật PR, tests và image job tự chạy. Mở tab Checks hoặc Actions, đọc log bước thất bại; báo cáo JSON nằm trong artifact container-evidence.
 
 ```powershell
 git switch -c feature/my-change
@@ -309,30 +309,28 @@ TestClient có cảnh báo deprecation httpx trên phiên Starlette hiện tại
 
 ## 12. Kết quả kiểm chứng thực tế
 
-Đã thực hiện trên Windows / Docker Desktop Linux engine:
+CI main mới nhất đã kiểm: THÀNH CÔNG, https://github.com/nqming/voicescope/actions/runs/41160259928. Test Python, test PCM, build Linux/amd64, ONNX inference và audit image đều pass. Login/publish được SKIP vì chưa cấu hình Docker Hub.
 
-- Python test tại workspace hiện tại: 25 passed, 1 skipped; một cảnh báo deprecation TestClient.
-- JavaScript PCM regression: PASS, kiểm stereo downmix, thứ tự block, final block và WAV encoding (5003 samples).
-- Docker build target web: THÀNH CÔNG sau sửa lỗi tải license và context.
-- Image local: voicescope:cicd-test, 833.849.767 bytes (khoảng 795 MiB).
-- ID image local: sha256:c9714f9cf6ac79fdff03513071d5c2dedcb27cc3024fdd1a901f2e8cb0947bf9. Đây KHÔNG phải digest Docker Hub đã publish.
-- Provenance local ghi workspace-cicd vì build từ workspace chưa commit; không giả mạo source SHA sạch.
-- Container filesystem read-only, tmpfs /tmp, drop capabilities, no-new-privileges: khởi động được, Docker health healthy, /ready 200.
-- HTTP smoke: homepage, frontend API routes, health và readiness đều pass.
-- ONNX inference qua POST /inference: PASS với sin 2 giây.
-- Câu TTS tổng hợp bằng Windows System.Speech, 5,368 giây: fake, fake_score 0,99997365; expected-label=fake pass. TTS chỉ lưu trong tmp/ bị loại khỏi Git và Docker.
-- Payload audit: UID 10001, không có torch, audio, secrets hoặc __pycache__ trong payload /app. Model card, notice, license và manifest có trong image.
-- Weights Q4: 89.730.755 bytes; checksum SHA256 66a094e0d039c899e07fd08f8c3ff6ecf24145ce8bf5f53a3d23e25c5775f4f5 khớp manifest.
-- Compose local và production: cú pháp hợp lệ. deploy/remote.sh: bash -n pass; chưa chạy trên server.
+- Source build: checkout sạch, commit cf09394c83097a5e2c0f6290ac144e795fdfa144; giữ nguyên README người dùng vừa sửa. OCI label và /health.version khớp commit.
+- Tag local đã kiểm: voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144; dung lượng 833.850.413 bytes, khoảng 795 MiB.
+- ID local: sha256:86beb401656b893088467a32f5d49af11bec0d9c331e125c7f0271c62f2fbc8f. Đây KHÔNG phải digest registry đã publish.
+- Container chạy UID 10001, filesystem read-only, tmpfs /tmp, drop capabilities và no-new-privileges. Model ready, health và các endpoint HTTP pass.
+- Inference sin 2 giây chạy được. Câu Windows TTS 5,368 giây: fake, fake_score 0,99997365; expected-label=fake pass. Đây là kiểm thực thi, không phải benchmark accuracy.
+- Payload sạch: không có torch, audio, token hoặc __pycache__ trong /app; có model card, notice, license và manifest. Weights 89.730.755 bytes, SHA256 66a094e0d039c899e07fd08f8c3ff6ecf24145ce8bf5f53a3d23e25c5775f4f5 khớp manifest.
+- Kiểm tra trước đó: local 25 passed/1 skipped; CI Linux 23 passed/2 skipped; test PCM pass. Compose và bash -n hợp lệ; chưa chạy remote deploy.
 
-CI cuối trên GitHub: THÀNH CÔNG, https://github.com/nqming/voicescope/actions/runs/41159251802. Source commit a02aa509b5281e24463c4c80c696b0710a649e66 gồm pipeline collection hiện tại và cấu hình rollback. Linux: 23 passed, 2 skipped, một cảnh báo; PCM test pass; build Linux/amd64, hardened container, ONNX inference và image audit đều pass. Khác biệt số test với Windows do các bài ML tùy chọn được bỏ qua trong môi trường CI không có PyTorch. Login và publish được SKIP đúng thiết kế đối với PR; không tính là publish thành công.
+Chạy đúng image đã có trên máy, không cần Docker Hub:
 
-Publish Docker Hub: CHƯA THỰC HIỆN. Chưa có public pull, tag hay digest registry đã xác minh. GitHub chưa được lưu DOCKERHUB_TOKEN/DOCKERHUB_USERNAME. Bị chặn bởi auto-review, không phải do build thất bại.
+```powershell
+docker run --rm -p 127.0.0.1:8000:8000 `
+  voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144
+```
 
-CD: đã có mẫu deploy và rollback theo digest; CHƯA deploy image mới lên server. Bản Render có sẵn được giữ nguyên; kiểm read-only /health và /ready đều 200, model_ready=true, revision f196402109bf60581e9e3ff925934b93af3d57ce. Không tạo hạ tầng trả phí.
+Các lệnh voicescope:cicd-test ở phần hướng dẫn là tag local mẫu. Image theo SHA trên đây thay thế bản thử build từ workspace chưa commit. Log/JSON ở artifacts/; câu TTS ở tmp/; các thư mục này bị loại khỏi Git/image. Không dùng bản ghi microphone riêng của người dùng.
 
+Publish Docker Hub: CHƯA THỰC HIỆN, chưa có pull công khai hay registry digest được xác minh. Auto-review yêu cầu xác nhận cụ thể trước khi chuyển PAT đang lưu sang secret GitHub Actions và tạo public qminh19/voicescope. Lệnh bị chặn chưa thực thi; chưa có credential được chuyển.
 
-Các log và JSON nằm trong artifacts/, được Git và Docker context bỏ qua. Không chứa nội dung audio. Không sử dụng dataset benchmark hay bản ghi microphone riêng của người dùng trong công việc CI/CD này. Mẫu speech kiểm thử là câu TTS tổng hợp cục bộ, không được đưa vào Git hoặc image.
+CD: đã có cấu hình deploy/rollback nhưng CHƯA deploy image mới. Bản Render giữ nguyên; lần kiểm read-only trước trả /health và /ready 200, revision f196402. Không tạo hạ tầng trả phí.
 
 ## 13. Giới hạn và việc cần thêm cho production
 
