@@ -1,6 +1,7 @@
 name: CI and Docker Hub
 on:
   pull_request:
+    paths-ignore: ['docs/**', 'README.md', 'tools/build_cicd_pdf.py']
   push:
     branches: [main, 'release/**']
     tags: ['v*']

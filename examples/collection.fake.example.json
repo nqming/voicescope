@@ -1,0 +1,17 @@
+{
+  "clip_id": "example_fake_001",
+  "speaker_id": "example_speaker_001",
+  "source_id": "example_session_001",
+  "parent_clip_id": "example_real_001",
+  "label": "fake",
+  "synthesis_method": "REPLACE_WITH_TTS_OR_VC_TOOL_VERSION_AND_SETTINGS",
+  "device": "REPLACE_WITH_ACTUAL_EXPORT_DEVICE",
+  "channel": "REPLACE_WITH_ACTUAL_CHANNEL",
+  "consent_status": "pending",
+  "consent_ref": "NO_ACTUAL_CONSENT_IN_THIS_EXAMPLE",
+  "origin": "private",
+  "license": "REPLACE_WITH_ACTUAL_TTS_AND_VOICE_RIGHTS",
+  "related_speaker_ids": [],
+  "related_source_ids": [],
+  "is_test_fixture": false
+}
