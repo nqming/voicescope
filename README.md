@@ -1,3 +1,15 @@
+# Trạng thái triển khai hiện tại - VoiceScope
+
+Ứng dụng web/API hiện dùng NII AntiDeepfake Wav2Vec2-Small ONNX Q4 trên CPU, không cần GPU hoặc huấn luyện lại. Web: https://voicescope-581u.onrender.com. Docker target `web` đóng gói model theo revision cố định và chạy bằng user không có quyền root.
+
+Hướng dẫn CI/CD và Docker mới: [Markdown](docs/huong-dan-cicd-docker-ai.md) và [PDF](docs/huong-dan-cicd-docker-ai.pdf). Giấy phép model: [MODEL-NOTICE.md](MODEL-NOTICE.md), CC BY-NC-SA 4.0, phi thương mại.
+
+Workflow kiểm tra PR không nhận secrets publish. Publish Docker Hub và deploy server là các bước riêng; trạng thái kiểm chứng cụ thể nằm trong hướng dẫn, không suy ra thành công chỉ từ cấu hình.
+
+## Tài liệu nghiên cứu và lịch sử phiên bản đầu
+
+Các phần bên dưới ghi lại thiết kế DINOv3 và trạng thái ban đầu; không mô tả model của Docker target `web` hiện tại.
+
 # VoiceScope — nghiên cứu phát hiện giọng nói giả mạo tiếng Việt
 
 **Trạng thái hiện tại: đã có ASVspoof 2019 LA và Vietnam-Celeb cục bộ;
@@ -9,8 +21,42 @@ Pretrained DINOv3 thị giác tự nó **không phải** detector giọng nói g
 **Đính chính yêu cầu số 3: “link deploy hệ thống” là URL ứng dụng sau triển khai,
 không phải “link delay” hoặc phép đo latency.** Benchmark giữ là công cụ tùy chọn.
 Đã chuẩn bị Docker/Render cho frontend + API cùng một URL.
-**Chưa có URL HTTPS public** vì chưa kết nối hosting và chưa có repository/remote.
+Người dùng đã xác nhận triển khai và mở được web trên Render. URL public chưa được
+cung cấp trong repository để kiểm tra độc lập; web vẫn chờ detector checkpoint.
 Xem [hướng dẫn deploy, cập nhật và checkpoint](docs/deployment.md).
+
+## Bản nộp GitHub: thu thập và xử lý dữ liệu theo pipeline
+
+**Phạm vi bản nộp này: mã pipeline dữ liệu và tài liệu tái lập. Huấn luyện/cấu hình
+mô hình được hoãn theo yêu cầu.** Không có audio, checkpoint hoặc metadata cá nhân
+được đưa vào Git. Hướng dẫn chi tiết theo từng khối trong ảnh:
+[docs/data-pipeline.md](docs/data-pipeline.md).
+
+| Bước cần kiểm tra | File đã bổ sung/có sẵn | Chức năng |
+|---|---|---|
+| Thu thập/tiếp nhận tiếng thật có quyền | [voicescope/collect.py](voicescope/collect.py) **mới** | Ingest file local hoặc record microphone; kiểm consent trước mở mic, giữ bytes nguồn, chống trùng ID/hash |
+| Mẫu giả TTS/VC có quyền | [examples/collection.fake.example.json](examples/collection.fake.example.json) **mới** + collect ingest | Nhập file đã được tạo bằng công cụ được phép, lưu method/version/lineage; không tự gọi dịch vụ TTS |
+| Audio gốc + metadata | [examples/collection.real.example.json](examples/collection.real.example.json) **mới**, [manifest schema](examples/manifest.schema.json) | ID thay thế, source, label, device/channel, sample rate/duration, consent/license và đường dẫn tương đối |
+| Import benchmark đã tải | [voicescope/import_asvspoof.py](voicescope/import_asvspoof.py) **mới** | ASVspoof 2019 LA CM protocols; giữ official split và attack ID; rights pending mặc định |
+| Chuẩn hóa và mức âm | [voicescope/audio.py](voicescope/audio.py), [configs/default.json](configs/default.json) | Mono 16 kHz, polyphase, peak/clipping/RMS, chuẩn hóa mức âm tùy chọn |
+| Phân đoạn và mapping | [voicescope/audio.py](voicescope/audio.py) | Energy gate, cửa sổ theo config, giữ thời gian gốc; chưa phải learned VAD |
+| Biến thể thiết bị/kênh tùy chọn | [voicescope/prepare.py](voicescope/prepare.py) | White noise 20 dB theo seed; giữ nguyên split/parent; chưa triển khai NS/AGC/AEC/codec/replay |
+| QC, reject và đóng gói | [voicescope/prepare.py](voicescope/prepare.py) | Decode/duration/clipping/duplicate, PCM16, rejects, hashes, report và output version mới |
+| Chia tập chống leakage | [voicescope/manifest.py](voicescope/manifest.py) | Nhóm liên thông speaker/source/parent/VC, chia trước biến thể và audit split |
+| Kiểm chứng bản nộp | [tests/test_collect.py](tests/test_collect.py), [tests/test_import_asvspoof.py](tests/test_import_asvspoof.py), [tests/test_pipeline_rejects.py](tests/test_pipeline_rejects.py) **mới** | Consent, metadata, import/labels/split và reject decode/clipping/duration bằng fixture tổng hợp |
+| Hướng dẫn và thay đổi | [docs/data-pipeline.md](docs/data-pipeline.md) **mới**, README cập nhật | Lệnh chạy, đối chiếu pipeline, dữ liệu thật đã kiểm tra giới hạn và phần chưa triển khai |
+
+Chạy kiểm tra collection/import/prepare mà không cần microphone hoặc dataset riêng:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest tests/test_core.py tests/test_collect.py tests/test_import_asvspoof.py tests/test_prepare.py tests/test_pipeline_rejects.py -q
+```
+
+`requirements-collection.txt` là dependency tùy chọn **chỉ cho ghi microphone thật**;
+ingest/import/prepare không cần cài sounddevice. Template consent mặc định pending,
+không được tự coi là đã có đồng ý. Tín hiệu sin trong tests không dùng báo cáo chất lượng.
+Xem [bằng chứng bản nộp](docs/submission-data-pipeline.md).
 
 ## Khảo sát ban đầu
 
@@ -27,9 +73,9 @@ TF-C/TFCL**; không lấy kết quả trong hai bài làm kết quả dự án. 
 
 1. **Ứng dụng/pipeline:** đã có schema, adapter, CLI nghiên cứu, API và UI. Tín hiệu
    toán học chỉ dùng trong tests, không dùng báo cáo chất lượng.
-2. **Deploy:** đã có startup theo PORT, container và Render Blueprint; cần quyền
-   hosting/repository để cấp URL public và kiểm tra sau triển khai.
-3. **Dữ liệu/model:** corpus đã tải cục bộ; cần importer/protocol/QC, weights DINOv3
+2. **Deploy:** đã có startup theo PORT, container và Render Blueprint; người dùng
+   xác nhận web đã mở trên Render. Chưa có URL trong repo để xác minh public.
+3. **Dữ liệu/model:** corpus đã tải cục bộ; đã thêm importer ASVspoof LA, còn cần QC toàn bộ, weights DINOv3
    có quyền, train và đánh giá held-out rồi mới cấu hình checkpoint cho ứng dụng.
 
 ## Kiến trúc
@@ -255,6 +301,9 @@ So sánh latency chỉ khi cùng hardware, precision, batch, cấu hình và ph�
 | `voicescope/audio.py` | Decode/QC/resample, energy gate, log-Mel và mốc thời gian |
 | `voicescope/manifest.py` | Schema runtime, consent, đường dẫn an toàn, nhóm liên thông và audit leakage |
 | `voicescope/prepare.py` | CLI chia trước biến thể, PCM16, duplicate/reject, provenance và version output |
+| `voicescope/collect.py`, `requirements-collection.txt`, `examples/collection.*.example.json` | **Bản nộp pipeline:** tiếp nhận/ghi âm local có kiểm consent, metadata, chống trùng, dependency mic tùy chọn |
+| `voicescope/import_asvspoof.py` | **Bản nộp pipeline:** nhập protocol benchmark đã tải, giữ nhãn/split, không tự xác nhận quyền sử dụng |
+| `docs/data-pipeline.md`, `docs/submission-data-pipeline.md`, các test collection/import/reject | **Bản nộp pipeline:** bản đồ code theo ảnh, hướng dẫn tái lập và bằng chứng kiểm chứng |
 | `voicescope/model.py` | DINOv3 Hub local, adapter ảnh 3 kênh, freeze/fine-tune, head hai lớp |
 | `voicescope/train.py` | Train supervised, validation chọn checkpoint, seed/hashes, chặn fixture |
 | `voicescope/inference.py` | Nạp detector strict, dùng config checkpoint, inference thật và timing |
@@ -280,24 +329,18 @@ cần hoàn thiện: import/QC dữ liệu đã có, quyền sử dụng phù h�
 phần cứng, huấn luyện và đánh giá protocol; hosting/repository để có URL public.
 Không mô phỏng AEC/NS/AGC rồi gọi là WebRTC thật.
 
-## Git/GitHub
+## Git/GitHub và cách nộp
 
-Thư mục đầu vào không có `.git` và remote. Chưa tạo commit/PR hoặc push lên GitHub.
-Các file cục bộ sẵn sàng review. Khi có repository đích do bạn tạo/cấp quyền:
+Repository hiện tại: [nqming/voicescope](https://github.com/nqming/voicescope).
+Commit nền ứng dụng/deploy: `d4e373e` trên `feature/deploy-voicescope`.
+Bản nộp mã dữ liệu được chuẩn bị trên branch **`feature/data-pipeline-submission`**,
+để review riêng và giữ nguyên branch deploy đang hoạt động.
 
-```powershell
-git init -b feature/voicescope-pipeline
-git add .gitignore .dockerignore .env.example Dockerfile compose.yaml render.yaml README.md requirements.txt requirements-dev.txt requirements-ml.txt requirements-verified.txt requirements-runtime.txt pytest.ini voicescope configs examples web tests docs data/README.md
-git diff --cached --check
-git diff --cached --stat
-git status --short
-# Kiểm tra danh sách stage trước khi commit, không dùng git add -f cho dữ liệu.
-git commit -m "feat: scaffold VoiceScope DINOv3 audio research pipeline and demo"
-$repoUrl = Read-Host 'URL GitHub repository đích của bạn'
-git remote add origin $repoUrl
-git push -u origin feature/voicescope-pipeline
-```
+Nộp **link branch/commit** có README này cùng mã trong `voicescope/`, templates,
+configs, docs và tests. Không chỉ gửi link mặc định nếu default branch chưa có bản mới.
+Mọi kết quả push/commit thực tế được báo ở cuối phiên làm việc; không coi tên branch
+trong tài liệu là bằng chứng đã push nếu lệnh Git thất bại.
 
-Nếu thư mục đã được `git init` sau phiên này, bỏ lệnh init và tạo branch bằng
-`git switch -c feature/voicescope-pipeline`. Không force-push, không push thẳng main/master.
-Hai ảnh/PDF tham khảo không nằm trong danh sách stage ở trên; tự kiểm tra quyền trước khi công bố chúng.
+Không force-push, không push trực tiếp main/master, không dùng `git add -f` cho audio,
+archives, metadata riêng hoặc weights. Hai ảnh/PDF tham khảo giữ local, không tự
+đưa lên Git khi chưa xác minh quyền phân phối. Dataset chỉ nằm ở `data/` ngoài Git.
