@@ -6,7 +6,7 @@ Quy trình bạn đề xuất phù hợp: chuẩn bị dự án, tạo API, đó
 
 Phạm vi: phục vụ inference CPU của VoiceScope bằng model NII AntiDeepfake ONNX Q4 có sẵn, không huấn luyện lại. Mã nguồn: https://github.com/nqming/voicescope. Web đã kiểm chứng: https://voicescope-581u.onrender.com.
 
-Trạng thái: CI/build/push Docker Hub đã tự động. Render đã được người dùng đổi sang main và After CI Checks Pass; đang thực hiện lượt đối chiếu commit mới, CI và deploy tự động. PDF giữ đúng 8 bước, phân biệt cấu hình đã bật với bằng chứng đầu cuối.
+Trạng thái: CI/build/push Docker Hub và CD Render đã tự động hóa và được kiểm chứng đầu cuối. Render theo dõi main, chờ CI đạt rồi tự deploy; bản mới đã Live và qua kiểm tra model/API. PDF giữ đúng 8 bước và ghi nhận bằng chứng thực tế.
 
 [[ROADMAP]]
 
@@ -174,9 +174,9 @@ node tests/test_pcm_capture.cjs
 
 PR chạy kiểm tra/build, không nhận secrets publish. Login/push chỉ được xét sau kiểm thử, với event push trên các nhánh/tag được tin cậy. Workflow dùng quyền contents: read và pin các Action chính theo commit SHA.
 
-**Kết quả đã kiểm.** Môi trường Windows: 25 passed, 1 skipped; Linux: 23 passed, 2 skipped; PCM test pass. Các test ML tùy chọn khác nhau theo môi trường. Đây là kiểm chức năng, không phải accuracy của detector.
+**Kết quả đã kiểm.** Môi trường Windows: 28 passed, 1 skipped; Linux CI kiểm chứng tự động: 26 passed, 2 skipped; PCM test pass. Các test ML tùy chọn khác nhau theo môi trường. Đây là kiểm chức năng, không phải accuracy của detector.
 
-Lần phát hành v0.2.0 đã qua CI: https://github.com/nqming/voicescope/actions/runs/41185814386. Nếu job thất bại, đọc step đầu tiên lỗi và sửa nguyên nhân trước khi phát hành. CI đầu từng thiếu file test PCM trên nhánh deploy; đã đồng bộ file thay vì bỏ qua test.
+Lần phát hành v0.2.0 đã qua CI: https://github.com/nqming/voicescope/actions/runs/41185814386. Lượt kiểm chứng auto-CD sau bản sửa phiên bản: https://github.com/nqming/voicescope/actions/runs/41189828565. Nếu job thất bại, đọc step đầu tiên lỗi và sửa nguyên nhân trước khi phát hành. CI đầu từng thiếu file test PCM trên nhánh deploy; đã đồng bộ file thay vì bỏ qua test.
 
 **Điểm cần hiểu.** CI ở bước này tự lặp lại build và chạy thử của bước 4-5. Thứ tự tám bước là quy trình thiết lập ban đầu, không phải mỗi lần sửa code bạn phải tự làm lại mọi bước bằng tay.
 
@@ -228,7 +228,7 @@ git pull --ff-only origin main
 
 Chạy Git ở checkout sạch; không đổi nhánh hoặc pull khi còn thay đổi cá nhân chưa xử lý. Đoạn trên chỉ minh họa cách lấy main, không phải lệnh để bỏ qua review hoặc ghi đè code.
 
-**Kiểm chứng đầu cuối.** Đang sử dụng bản cập nhật tài liệu 8 bước làm commit kiểm chứng. Bản 94eab833 đã qua CI và Live sau khi đổi cấu hình, nhưng trigger=service_updated; cần đối chiếu thêm một deploy tự sinh từ commit mới sau khi CI đạt trước khi kết luận toàn bộ chuỗi đã được kiểm.
+**Kiểm chứng đầu cuối đã đạt.** Commit f50e32975751b167014d94c891d4b665f29939b4 vào main; CI run 41189828565 hoàn tất job image lúc 16:45:13 ngày 31/10/2026 (giờ Việt Nam). Render tự tạo deploy dep-dbirhb7avr4c73bcrnv0 lúc 16:45:16, trigger=new_commit; Live lúc 16:46:13. Không gửi lệnh deploy thủ công. /health.version khớp commit, model_ready=true, HTTP/readiness pass và TTS fake_score=0,99997365 khớp bản kiểm thử. Tag SHA của commit cũng được publish lên Docker Hub.
 
 **Kiểm tra sau khi Render báo Live:**
 

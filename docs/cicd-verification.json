@@ -2,19 +2,37 @@
   "date": "2026-10-31",
   "workspace": "D:\\Codex\\BTTHCDTTNT",
   "local_python_tests": {
-    "passed": 25,
+    "passed": 28,
     "skipped": 1
   },
   "linux_ci_tests": {
-    "passed": 23,
+    "passed": 26,
     "skipped": 2
   },
   "ci": {
-    "id": 41185814386,
-    "head_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+    "id": 41189828565,
+    "head_sha": "f50e32975751b167014d94c891d4b665f29939b4",
     "status": "completed",
     "conclusion": "success",
-    "html_url": "https://github.com/nqming/voicescope/actions/runs/41185814386"
+    "html_url": "https://github.com/nqming/voicescope/actions/runs/41189828565",
+    "created_at": "2026-10-31T09:43:10Z",
+    "updated_at": "2026-10-31T09:45:14Z",
+    "jobs": [
+      {
+        "name": "tests",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T09:43:13Z",
+        "completed_at": "2026-10-31T09:43:28Z"
+      },
+      {
+        "name": "image",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T09:43:30Z",
+        "completed_at": "2026-10-31T09:45:13Z"
+      }
+    ]
   },
   "local_image": "qminh19/voicescope:v0.2.0",
   "local_image_id": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
@@ -47,7 +65,7 @@
     "scope": "Container API execution; not a general accuracy benchmark"
   },
   "publish": "success: v0.2.0, latest and SHA tag published by CI; anonymous pull verified",
-  "deploy": "live on existing Render free service; same release source; Git-backed Docker build",
+  "deploy": "automatic Render new_commit deployment live, source f50e329, after all CI jobs passed",
   "commands_verified": [
     "python -m pytest -q",
     "node tests/test_pcm_capture.cjs",
@@ -66,7 +84,9 @@
     "promote feature/deploy-voicescope to a8a29e7 by fast-forward",
     "merge VOICESCOPE_VERSION in existing Render service; observe resulting deploy to live",
     "python -m voicescope.smoke --url https://voicescope-581u.onrender.com --expect ready --require-https",
-    "TTS inference on production: expected fake, score matches public registry image"
+    "TTS inference on production: expected fake, score matches public registry image",
+    "main f50e329: CI success before Render new_commit automatic deploy, no manual trigger",
+    "post-auto-deploy HTTPS/readiness/version and synthesized TTS inference verified"
   ],
   "latest_release": {
     "repository": "qminh19/voicescope",
@@ -138,6 +158,190 @@
   "render_deployment": {
     "workspace_id": "tea-dbac9nk9v7es73fvfkcg",
     "service_id": "srv-dbacag3ncjis73d1c3h0",
+    "deploy_id": "dep-dbirhb7avr4c73bcrnv0",
+    "status": "live",
+    "trigger": "new_commit",
+    "created_at": "2026-10-31T09:45:16.470065Z",
+    "finished_at": "2026-10-31T09:46:13.92495Z",
+    "branch": "main",
+    "autoDeploy": "yes",
+    "autoDeployTrigger": "checksPass",
+    "manual_trigger_issued": false,
+    "plan": "free",
+    "source_kind": "Git-backed Docker build, not Docker Hub artifact pull",
+    "health": {
+      "status": "ready",
+      "model_ready": true,
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "version": "f50e32975751b167014d94c891d4b665f29939b4",
+      "message": "Sẵn sàng phân tích",
+      "max_upload_bytes": 20971520,
+      "max_duration_seconds": 120.0,
+      "formats": [
+        "wav",
+        "flac"
+      ],
+      "retention": "RAM only; released after request; no audio logging"
+    },
+    "inference": {
+      "label": "fake",
+      "fake_score": 0.9999736547470093,
+      "threshold": 0.5,
+      "duration_seconds": 5.3683125,
+      "temporal_scores": null,
+      "suspicious_segments": [],
+      "scope": "clip",
+      "aggregation": "duration_weighted_window_mean",
+      "spectrogram_mapping": [],
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "license": "CC-BY-NC-SA-4.0",
+      "timing_ms": {
+        "preprocessing": 3.8819732144474983,
+        "model": 8597.844713367522,
+        "server_compute": 8601.72668658197,
+        "server_request": 8676.583020016551
+      },
+      "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
+    }
+  },
+  "automation_scope": "GitHub main CI/build/publish automatic; Render main/checksPass automatic; new_commit deploy live and HTTP/inference verified",
+  "auto_cd": {
+    "branch": "main",
+    "autoDeploy": "yes",
+    "autoDeployTrigger": "checksPass",
+    "configured_by": "user in Render Dashboard, confirmed via connected service read",
+    "version_fix_commit": "94eab833f3489815176edc2d1c899ec8e8545cbb",
+    "version_fix_ci": {
+      "id": 41189154335,
+      "head_sha": "94eab833f3489815176edc2d1c899ec8e8545cbb",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/nqming/voicescope/actions/runs/41189154335",
+      "created_at": "2026-10-31T09:33:06Z",
+      "updated_at": "2026-10-31T09:35:03Z"
+    },
+    "initial_service_updated_deploy": "dep-dbircu4s728c738426u0",
+    "new_commit_verification": "passed",
+    "end_to_end": {
+      "source_sha": "f50e32975751b167014d94c891d4b665f29939b4",
+      "ci": {
+        "id": 41189828565,
+        "head_sha": "f50e32975751b167014d94c891d4b665f29939b4",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/nqming/voicescope/actions/runs/41189828565",
+        "created_at": "2026-10-31T09:43:10Z",
+        "updated_at": "2026-10-31T09:45:14Z",
+        "jobs": [
+          {
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T09:43:13Z",
+            "completed_at": "2026-10-31T09:43:28Z"
+          },
+          {
+            "name": "image",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T09:43:30Z",
+            "completed_at": "2026-10-31T09:45:13Z"
+          }
+        ]
+      },
+      "render": {
+        "workspace_id": "tea-dbac9nk9v7es73fvfkcg",
+        "service_id": "srv-dbacag3ncjis73d1c3h0",
+        "deploy_id": "dep-dbirhb7avr4c73bcrnv0",
+        "status": "live",
+        "trigger": "new_commit",
+        "created_at": "2026-10-31T09:45:16.470065Z",
+        "finished_at": "2026-10-31T09:46:13.92495Z",
+        "branch": "main",
+        "autoDeploy": "yes",
+        "autoDeployTrigger": "checksPass",
+        "manual_trigger_issued": false,
+        "plan": "free",
+        "source_kind": "Git-backed Docker build, not Docker Hub artifact pull",
+        "health": {
+          "status": "ready",
+          "model_ready": true,
+          "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+          "version": "f50e32975751b167014d94c891d4b665f29939b4",
+          "message": "Sẵn sàng phân tích",
+          "max_upload_bytes": 20971520,
+          "max_duration_seconds": 120.0,
+          "formats": [
+            "wav",
+            "flac"
+          ],
+          "retention": "RAM only; released after request; no audio logging"
+        },
+        "inference": {
+          "label": "fake",
+          "fake_score": 0.9999736547470093,
+          "threshold": 0.5,
+          "duration_seconds": 5.3683125,
+          "temporal_scores": null,
+          "suspicious_segments": [],
+          "scope": "clip",
+          "aggregation": "duration_weighted_window_mean",
+          "spectrogram_mapping": [],
+          "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+          "license": "CC-BY-NC-SA-4.0",
+          "timing_ms": {
+            "preprocessing": 3.8819732144474983,
+            "model": 8597.844713367522,
+            "server_compute": 8601.72668658197,
+            "server_request": 8676.583020016551
+          },
+          "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
+        }
+      },
+      "checks_completed_before_deploy": true,
+      "dockerhub_sha_tag": "sha-f50e32975751b167014d94c891d4b665f29939b4",
+      "dockerhub_digest": "sha256:efb305552efc77dd6482625f6497d0b85b5a1c6c51d6255112150431a8187a1f",
+      "health": {
+        "status": "ready",
+        "model_ready": true,
+        "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+        "version": "f50e32975751b167014d94c891d4b665f29939b4",
+        "message": "Sẵn sàng phân tích",
+        "max_upload_bytes": 20971520,
+        "max_duration_seconds": 120.0,
+        "formats": [
+          "wav",
+          "flac"
+        ],
+        "retention": "RAM only; released after request; no audio logging"
+      },
+      "inference": {
+        "label": "fake",
+        "fake_score": 0.9999736547470093,
+        "threshold": 0.5,
+        "duration_seconds": 5.3683125,
+        "temporal_scores": null,
+        "suspicious_segments": [],
+        "scope": "clip",
+        "aggregation": "duration_weighted_window_mean",
+        "spectrogram_mapping": [],
+        "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+        "license": "CC-BY-NC-SA-4.0",
+        "timing_ms": {
+          "preprocessing": 3.8819732144474983,
+          "model": 8597.844713367522,
+          "server_compute": 8601.72668658197,
+          "server_request": 8676.583020016551
+        },
+        "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
+      },
+      "inference_matches_registry_reference": true,
+      "private_audio_uploaded": false
+    }
+  },
+  "previous_manual_render_deployment": {
+    "workspace_id": "tea-dbac9nk9v7es73fvfkcg",
+    "service_id": "srv-dbacag3ncjis73d1c3h0",
     "deploy_id": "dep-dbiqqt142hec73b8nrm0",
     "status": "live",
     "source_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
@@ -184,24 +388,5 @@
     "private_audio_uploaded": false,
     "rollback_executed": false,
     "auto_deploy": "off"
-  },
-  "automation_scope": "GitHub CI/build/publish automatic; Render main with checksPass enabled; end-to-end new-commit verification pending",
-  "auto_cd": {
-    "branch": "main",
-    "autoDeploy": "yes",
-    "autoDeployTrigger": "checksPass",
-    "configured_by": "user in Render Dashboard, confirmed via connected service read",
-    "version_fix_commit": "94eab833f3489815176edc2d1c899ec8e8545cbb",
-    "version_fix_ci": {
-      "id": 41189154335,
-      "head_sha": "94eab833f3489815176edc2d1c899ec8e8545cbb",
-      "status": "completed",
-      "conclusion": "success",
-      "html_url": "https://github.com/nqming/voicescope/actions/runs/41189154335",
-      "created_at": "2026-10-31T09:33:06Z",
-      "updated_at": "2026-10-31T09:35:03Z"
-    },
-    "initial_service_updated_deploy": "dep-dbircu4s728c738426u0",
-    "new_commit_verification": "pending"
   }
 }
