@@ -8,7 +8,7 @@ Bản web hiện có: https://voicescope-581u.onrender.com
 
 Phạm vi: đóng gói và phục vụ inference CPU; không huấn luyện lại model.
 
-CI và publish Docker Hub đã hoàn tất cho v0.2.0; đã pull công khai và kiểm inference bằng image từ registry. CD trên Render còn cần kết nối tài khoản. Tài liệu không chứa token hay audio riêng tư.
+CI, publish Docker Hub và deploy Render đã hoàn tất cho source của v0.2.0. Đã kiểm pull công khai, inference container và inference trên web Live. Tài liệu không chứa token hay audio riêng tư.
 
 ## 1. Tổng quan và khảo sát dự án
 
@@ -59,7 +59,7 @@ Readiness + inference + payload audit
        Health + inference; lỗi thì rollback
 ```
 
-Bản Render hiện tại dùng source-based Docker build và auto-deploy tắt. Việc publish image lên Docker Hub không đồng nghĩa image đó đã được deploy lên Render. Không tạo server hoặc hạ tầng trả phí trong công việc này.
+Render hiện dùng source-based Docker build và auto-deploy tắt. Đã deploy cùng source commit với v0.2.0 lên dịch vụ hiện có; Render build lại từ Git, không pull digest Docker Hub. CI/publish và deploy Render là hai bước riêng. Dịch vụ giữ gói Free và URL cũ.
 
 ## 3. Điều kiện chuẩn bị và cấu trúc file
 
@@ -262,30 +262,39 @@ Kết quả thực tế: tải image thành công, digest khớp Docker Hub; ch�
 
 Không ghi đè tag v0.2.0. Với một bản mới, publish từ version tag mới qua workflow để có cùng kiểm thử, tag SHA và quy tắc latest. Deploy/rollback nên dùng digest thay vì latest. Giữ model notice/license trong mọi bản phân phối; weights dùng CC BY-NC-SA 4.0, phi thương mại.
 
-## 10. Deploy và rollback
+## 10. Deploy và rollback trên Render
 
-Mục đích: đưa image đã test lên Docker host hiện có. File: compose.production.yaml, deploy/remote.sh và workflow deploy-docker-host.yml. Chưa có Docker host SSH được cấu hình; workflow này là cấu hình triển khai mẫu, chưa thực thi trên server.
+Mục đích: cập nhật đúng dịch vụ VoiceScope sau khi CI và publish pass. File nguồn: Dockerfile, voicescope/server.py và cấu hình dịch vụ Render. Chạy lệnh Git từ gốc checkout sạch; không cần tạo server mới.
 
-Trên Linux host có Docker Compose và Python 3, clone source tin cậy chứa các file trên vào đường dẫn tuyệt đối, ví dụ /srv/voicescope. Cấu hình HTTPS reverse proxy trỏ về 127.0.0.1:8000; đặt VOICESCOPE_ALLOWED_HOSTS chứa hostname thật. Không expose cổng Docker trực tiếp ra Internet trong cấu hình mẫu này.
+Dịch vụ: voicescope; workspace My Workspace đã được người dùng xác nhận. Dashboard: https://dashboard.render.com/web/srv-dbacag3ncjis73d1c3h0. URL: https://voicescope-581u.onrender.com. Plan Free, Singapore, nhánh feature/deploy-voicescope, auto-deploy Off.
 
-```bash
-cd /srv/voicescope
-export VOICESCOPE_ALLOWED_HOSTS=voicescope.example.com,localhost,127.0.0.1
-bash deploy/remote.sh qminh19/voicescope@sha256:<DIGEST_THUC_TE>
+Bước 1: chọn release commit đã qua CI. Lần này là a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd (v0.2.0). Promote nhánh deploy bằng fast-forward, không force-push:
+
+```powershell
+git fetch origin
+$release = 'a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd'
+git merge-base --is-ancestor origin/feature/deploy-voicescope $release
+if ($LASTEXITCODE -ne 0) { throw 'Khong phai fast-forward' }
+git push origin "${release}:refs/heads/feature/deploy-voicescope"
 ```
 
-Thay domain, thư mục và digest bằng giá trị thật. Script pull trước, chạy compose --wait, gọi readiness và inference rồi lưu digest hiện tại/trước đó trong .deploy-state/. Nếu kiểm tra thất bại và có digest trước đó, script khôi phục image trước. Lần deploy đầu chưa có bản cũ để rollback.
+Bước 2: trong Environment của dịch vụ, đặt VOICESCOPE_VERSION bằng release SHA. Chỉ sửa key này, giữ các biến khác. Lần thực hiện qua kết nối Render dùng thao tác merge env và đã tự kích hoạt deploy mới; không trigger thêm deploy trùng. Trên Dashboard có thể chọn Save, rebuild, and deploy sau khi nhánh đã cập nhật.
 
-Rollback thủ công trên cùng host:
+Bước 3: theo dõi deploy ID đến Live. Lần đã hoàn tất: dep-dbiqqt142hec73b8nrm0, Live lúc 15:59:39 ngày 31/10/2026 (giờ Việt Nam). Render build Docker từ Git; đây là cùng source với image public, không phải tuyên bố cùng một binary image.
 
-```bash
-cd /srv/voicescope
-bash deploy/remote.sh "$(cat .deploy-state/previous)"
+Bước 4: kiểm HTTPS, readiness và phiên bản:
+
+```powershell
+python -m voicescope.smoke `
+  --url https://voicescope-581u.onrender.com `
+  --expect ready --require-https
 ```
 
-Trước tiên kiểm tra previous không rỗng. Rollback cũng phải qua health và inference. Muốn kích hoạt qua Actions, tạo environment production và cấu hình người review trước khi deploy nếu tài khoản hỗ trợ; thêm vars DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH và secrets DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS. KNOWN_HOSTS phải được xác minh qua kênh tin cậy; không tự tin kết quả ssh-keyscan chưa xác nhận. Host checkout phải được cập nhật từ nguồn đã review, workflow không tự chạy git pull tùy ý.
+Kết quả thực tế: HTTP checks pass, /ready 200, model_ready=true, version khớp release SHA. Câu TTS tổng hợp qua /inference trả fake_score 0,99997365, khớp container public. Không gửi bản ghi microphone riêng của người dùng. Kiểm log mức error sau startup không thấy bản ghi lỗi trong khoảng đã truy vấn.
 
-Bản Render hiện tại dùng repository, không nhận image từ workflow này. Chưa có phiên/API Render dùng được trong lượt này để đổi cơ chế deploy và kiểm tra rollback. Để dùng Docker Hub trên Render cần cấu hình service lấy external image, chọn digest đã publish, giữ PORT/health phù hợp, deploy và kiểm tra URL; việc chuyển service có thể thay đổi cấu hình nên chưa thực hiện. Không tạo thêm service trả phí. Bản web hiện có không phải bằng chứng cho CD mới đã chạy.
+Rollback khi cần: Dashboard > Deploys > chọn deploy trước dep-dbi8tiutlv9c7396glm0 (commit f196402) > Rollback, nếu artifact còn được Render giữ. Sau rollback kiểm lại /ready, /health.version và inference. Auto-deploy hiện Off; kiểm lại trạng thái sau rollback. Chưa chủ động rollback production vì deploy mới đang hoạt động tốt.
+
+Nếu vận hành Docker host riêng, mẫu compose.production.yaml và deploy/remote.sh vẫn có sẵn: pull digest mục 9, kiểm health/inference và phục hồi digest trước nếu thất bại. Mẫu host SSH chưa được triển khai trong công việc này.
 
 ## 11. Lỗi đã gặp và cách xử lý
 
@@ -326,7 +335,7 @@ GitHub Actions đã có DOCKERHUB_TOKEN mã hóa và DOCKERHUB_USERNAME=qminh19.
 
 Báo cáo nằm tại docs/cicd-verification.json và artifacts/public-*.json. Audio TTS chỉ ở tmp/; không dùng hay upload bản ghi microphone riêng của người dùng.
 
-CD: CHƯA deploy image mới lên Render. Đã tìm thấy tích hợp Render nhưng chưa cài/kết nối tài khoản trong phiên hiện tại; không có quyền gọi deploy service. Bản Render giữ nguyên. Cấu hình Docker host và rollback đã chuẩn bị; chưa kiểm remote hoặc rollback production, không tạo hạ tầng trả phí.
+Deploy Render: ĐÃ LIVE, deploy dep-dbiqqt142hec73b8nrm0, source a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd. HTTP/readiness và TTS inference pass, điểm khớp container public. Gói Free và URL cũ được giữ; auto-deploy vẫn Off. Render build lại cùng source từ Git, không pull image Docker Hub. Đã chuẩn bị hướng dẫn rollback nhưng chưa thực hiện rollback production.
 
 ## 13. Giới hạn và việc cần thêm cho production
 
@@ -336,7 +345,7 @@ Cần bổ sung quét CVE/SBOM và ký image theo chính sách vận hành; lock
 
 API hiện dùng một worker và giới hạn request theo process; production cần gateway/rate limit chung, TLS, auth nếu phù hợp, quan sát lỗi và hiệu năng không log audio, giới hạn tài nguyên và timeout tại reverse proxy. Không coi liveness là chất lượng model. Không dùng kết quả như kết luận giám định.
 
-Việc còn lại là kết nối tài khoản Render (hoặc cung cấp quyền Docker host theo cơ chế bảo mật), rồi deploy đúng digest ở mục 9, kiểm health/inference sau deploy và xác minh rollback. CI/build/publish và pull công khai đã hoàn tất; không cần gửi token vào chat.
+Phạm vi bàn giao đã hoàn tất: CI/build/publish tự động qua GitHub Actions, pull công khai, triển khai thủ công qua kết nối Render và kiểm sau deploy. Những lần phát hành tiếp theo cần promote đúng release commit, cập nhật VOICESCOPE_VERSION và deploy theo mục 10; auto-deploy chưa được bật. Không coi CD hiện tại là tự động từ mỗi push main đến production.
 
 Nguồn kỹ thuật chính thức để tra cứu thêm:
 
