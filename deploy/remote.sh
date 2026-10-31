@@ -17,6 +17,7 @@ else
   if [[ -n "$previous" ]]; then
     export VOICESCOPE_IMAGE="$previous"
     docker compose -f compose.production.yaml up -d --wait --wait-timeout 180
+    python3 tools/container_smoke.py --output artifacts/rollback-smoke.json
     echo 'Restored previous image after failed health/inference check'
   fi
   exit 1
