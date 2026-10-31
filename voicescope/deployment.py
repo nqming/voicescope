@@ -29,7 +29,7 @@ class WebSettings:
         return cls(allowed_hosts=values('VOICESCOPE_ALLOWED_HOSTS','*'),
                    cors_origins=values('VOICESCOPE_CORS_ORIGINS',''),
                    inference_per_minute=int(os.getenv('VOICESCOPE_INFERENCE_PER_MINUTE','6')),
-                   version=os.getenv('VOICESCOPE_VERSION') or os.getenv('RENDER_GIT_COMMIT','local'))
+                   version=os.getenv('RENDER_GIT_COMMIT') or os.getenv('VOICESCOPE_VERSION') or 'local')
 
 
 class InferenceRateLimit:

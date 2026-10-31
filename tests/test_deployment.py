@@ -69,3 +69,16 @@ def test_default_same_origin_does_not_allow_cross_origin():
     with TestClient(create_app(Config(),WebSettings())) as client:
         result=client.get('/health',headers={'origin':'https://untrusted.example'})
         assert 'access-control-allow-origin' not in result.headers
+
+def test_render_health_reports_platform_commit_instead_of_pinned_version(monkeypatch):
+    monkeypatch.setenv('VOICESCOPE_VERSION','a'*40)
+    monkeypatch.setenv('RENDER_GIT_COMMIT','b'*40)
+    with TestClient(create_app(Config(),WebSettings.from_env())) as client:
+        assert client.get('/health').json()['version']=='b'*40
+
+
+@pytest.mark.parametrize('configured,expected',[('image-revision','image-revision'),('','local')])
+def test_non_render_version_retains_image_revision_or_local_fallback(monkeypatch,configured,expected):
+    monkeypatch.delenv('RENDER_GIT_COMMIT',raising=False)
+    monkeypatch.setenv('VOICESCOPE_VERSION',configured)
+    assert WebSettings.from_env().version==expected
