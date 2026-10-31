@@ -47,7 +47,7 @@
     "scope": "Container API execution; not a general accuracy benchmark"
   },
   "publish": "success: v0.2.0, latest and SHA tag published by CI; anonymous pull verified",
-  "deploy": "pending Render connection; existing service unchanged",
+  "deploy": "live on existing Render free service; same release source; Git-backed Docker build",
   "commands_verified": [
     "python -m pytest -q",
     "node tests/test_pcm_capture.cjs",
@@ -62,7 +62,11 @@
     "docker build --target web --build-arg VCS_REF=cf09394c83097a5e2c0f6290ac144e795fdfa144 --tag voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144 --progress plain . (clean checkout)",
     "main image: readiness, synthetic inference, TTS expected fake, payload audit, source/version label checks",
     "docker --config tmp/docker-public-v020 pull qminh19/voicescope:v0.2.0",
-    "run public image by digest, readiness, synthetic inference, TTS expected fake and image payload audit"
+    "run public image by digest, readiness, synthetic inference, TTS expected fake and image payload audit",
+    "promote feature/deploy-voicescope to a8a29e7 by fast-forward",
+    "merge VOICESCOPE_VERSION in existing Render service; observe resulting deploy to live",
+    "python -m voicescope.smoke --url https://voicescope-581u.onrender.com --expect ready --require-https",
+    "TTS inference on production: expected fake, score matches public registry image"
   ],
   "latest_release": {
     "repository": "qminh19/voicescope",
@@ -130,5 +134,56 @@
       "html_url": "https://github.com/nqming/voicescope/actions/runs/41185814386"
     }
   },
-  "registry_digest": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95"
+  "registry_digest": "sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95",
+  "render_deployment": {
+    "workspace_id": "tea-dbac9nk9v7es73fvfkcg",
+    "service_id": "srv-dbacag3ncjis73d1c3h0",
+    "deploy_id": "dep-dbiqqt142hec73b8nrm0",
+    "status": "live",
+    "source_sha": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+    "url": "https://voicescope-581u.onrender.com",
+    "plan": "free",
+    "source": "Git-backed Docker build, same release commit as v0.2.0; not a pull of Docker Hub digest",
+    "previous_deploy_id": "dep-dbi8tiutlv9c7396glm0",
+    "previous_source_sha": "f196402109bf60581e9e3ff925934b93af3d57ce",
+    "health": {
+      "status": "ready",
+      "model_ready": true,
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "version": "a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd",
+      "message": "Sẵn sàng phân tích",
+      "max_upload_bytes": 20971520,
+      "max_duration_seconds": 120.0,
+      "formats": [
+        "wav",
+        "flac"
+      ],
+      "retention": "RAM only; released after request; no audio logging"
+    },
+    "inference": {
+      "label": "fake",
+      "fake_score": 0.9999736547470093,
+      "threshold": 0.5,
+      "duration_seconds": 5.3683125,
+      "temporal_scores": null,
+      "suspicious_segments": [],
+      "scope": "clip",
+      "aggregation": "duration_weighted_window_mean",
+      "spectrogram_mapping": [],
+      "model": "NII AntiDeepfake Wav2Vec2-Small Q4",
+      "license": "CC-BY-NC-SA-4.0",
+      "timing_ms": {
+        "preprocessing": 38.21010101819411,
+        "model": 9060.810627008323,
+        "server_compute": 9099.020728026517,
+        "server_request": 9407.744285999797
+      },
+      "notice": "Model nghiên cứu NII AntiDeepfake (CC BY-NC-SA 4.0), bản Q4. Điểm chưa hiệu chuẩn; có thể báo nhầm, không phải kết luận giám định."
+    },
+    "score_matches_registry_reference": true,
+    "private_audio_uploaded": false,
+    "rollback_executed": false,
+    "auto_deploy": "off"
+  },
+  "automation_scope": "GitHub CI/build/publish automatic; Render deploy manual through connected account, autoDeploy off"
 }
