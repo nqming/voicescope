@@ -1,0 +1,16 @@
+services:
+  voicescope:
+    image: ${VOICESCOPE_IMAGE:?Set an immutable Docker Hub digest}
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      VOICESCOPE_ALLOWED_HOSTS: ${VOICESCOPE_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      VOICESCOPE_INFERENCE_PER_MINUTE: "6"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped

@@ -13,3 +13,8 @@
 
 !tools/
 !tools/export_antideepfake.py
+
+!MODEL-NOTICE.md
+
+!licenses/
+!licenses/CC-BY-NC-SA-4.0.txt
