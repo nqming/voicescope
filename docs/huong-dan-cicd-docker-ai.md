@@ -8,7 +8,7 @@ Bản web hiện có: https://voicescope-581u.onrender.com
 
 Phạm vi: đóng gói và phục vụ inference CPU; không huấn luyện lại model.
 
-Tài liệu phân biệt kết quả đã chạy với hướng dẫn chưa thực thi. Các phần publish Docker Hub và cấu hình credential đang chờ xác nhận theo bộ duyệt tự động. Không có token hay audio riêng tư trong tài liệu.
+CI và publish Docker Hub đã hoàn tất cho v0.2.0; đã pull công khai và kiểm inference bằng image từ registry. CD trên Render còn cần kết nối tài khoản. Tài liệu không chứa token hay audio riêng tư.
 
 ## 1. Tổng quan và khảo sát dự án
 
@@ -183,9 +183,9 @@ Lệnh này chỉ xóa container thử, không xóa image hay dữ liệu trên 
 
 Mục đích: cấp khả năng push có kiểm soát. File workflow: .github/workflows/ci-docker.yml. Repository đích dự kiến: qminh19/voicescope; namespace được xác định từ credential helper Docker đang đăng nhập.
 
-Trang đích dự kiến: https://hub.docker.com/r/qminh19/voicescope. Tại thời điểm viết, repository chưa được tạo và URL này chưa phải bằng chứng publish thành công. Bộ duyệt tự động đã từ chối thao tác tạo repository public và chuyển PAT đang lưu sang GitHub secret; cần người dùng xác nhận cụ thể trước khi tiếp tục thao tác đó.
+Repository public đã được tạo và xác minh: https://hub.docker.com/r/qminh19/voicescope. Sau xác nhận cụ thể của người dùng, DOCKERHUB_TOKEN đã được lưu dạng secret mã hóa trong GitHub Actions và DOCKERHUB_USERNAME=qminh19 đã được cấu hình. Giá trị PAT chỉ qua credential helper và bộ nhớ tiến trình; không ghi vào Git hoặc tài liệu.
 
-Trong Docker Hub, tạo repository tên voicescope thuộc qminh19, visibility Public. Dùng PAT chỉ có quyền cần thiết cho push. Trong GitHub vào repository > Settings > Secrets and variables > Actions, tạo:
+Đối với một tài khoản hoặc repository mới, tạo repository Docker Hub theo namespace của bạn, visibility Public. Với qminh19/voicescope hiện tại, bước này đã hoàn tất và không cần tạo lại. Dùng PAT chỉ có quyền cần thiết cho push. Trong GitHub vào repository > Settings > Secrets and variables > Actions, tạo:
 
 - Variable DOCKERHUB_USERNAME: qminh19.
 - Secret DOCKERHUB_TOKEN: PAT Docker Hub có quyền push.
@@ -219,46 +219,48 @@ Sau khi merge phần CI vào nhánh phát hành được tin cậy và cấu hì
 Ví dụ phát hành một phiên bản ổn định chưa tồn tại:
 
 ```powershell
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.2.1
+git push origin v0.2.1
 ```
 
-Chỉ chạy sau kiểm tra và dùng phiên bản chưa có. Tag vMAJOR.MINOR.PATCH tạo tag cùng tên và latest; prerelease như v0.2.0-rc.1 không cập nhật latest. Workflow vẫn thêm tag SHA đầy đủ. Chưa tạo version tag trong lần thực hiện này. Không ghi đè tag phát hành cũ; sửa lỗi bằng phiên bản mới. Deploy production nên dùng digest, không dùng latest để rollback.
+Chỉ chạy sau kiểm tra và dùng phiên bản chưa có. Tag vMAJOR.MINOR.PATCH tạo tag cùng tên và latest; prerelease như v0.2.0-rc.1 không cập nhật latest. Workflow vẫn thêm tag SHA đầy đủ. Đã phát hành v0.2.0; ví dụ v0.2.1 ở trên là lần phát hành kế tiếp, chỉ chạy khi thực sự có phiên bản mới. Không ghi đè tag phát hành cũ; sửa lỗi bằng phiên bản mới. Deploy production nên dùng digest, không dùng latest để rollback.
 
-## 9. Push thủ công, pull công khai và chạy image
+## 9. Image public: pull, chạy và gọi API
 
-Mục đích: công bố đúng image đã test, xác minh người không đăng nhập cũng lấy được image. File: tools/publish_image.py. Chạy tại gốc source đã build; cần credential publish được phê duyệt trước.
+Mục đích: sử dụng đúng image đã được CI kiểm và công bố. Chạy PowerShell từ gốc repository. Không cần đăng nhập để pull image public.
 
-```powershell
-$env:GITHUB_SHA = git rev-parse HEAD
-$env:GITHUB_REF = 'refs/heads/release/cicd-docker'
-$env:DOCKERHUB_USERNAME = 'qminh19'
-python tools/publish_image.py --image voicescope:cicd-test
-```
+- Docker Hub: https://hub.docker.com/r/qminh19/voicescope
+- Version: v0.2.0; tag latest hiện trỏ cùng digest.
+- Source: a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd; tag SHA tương ứng cũng đã publish.
+- Digest registry: sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95.
 
-GITHUB_SHA phải đúng source revision của image; không gán commit mới cho image cũ. Script thêm sha-<SHA>, tag image rồi push, không build lại. Kiểm tra artifacts/publish.json để lấy digest; chỉ báo đã publish khi lệnh push thực sự thành công.
-
-Sau publish, dùng Docker config tạm trống để thử pull ẩn danh thay vì logout phiên của bạn:
+Không có giá trị cần thay trong các lệnh sử dụng bản phát hành này:
 
 ```powershell
-New-Item -ItemType Directory tmp/docker-anonymous -Force
-# Thay <TAG_DA_PUBLISH> bang tag da xac minh
-docker --config tmp/docker-anonymous pull `
-  qminh19/voicescope:<TAG_DA_PUBLISH>
-```
-
-Không có tag hoặc digest Docker Hub đã xác minh tại thời điểm tài liệu này. Những chỗ trong dấu <...> là giá trị phải lấy từ lần push thành công, không phải digest giả. Khi có digest, dùng:
-
-```powershell
-docker pull qminh19/voicescope@sha256:<DIGEST_THUC_TE>
+docker pull qminh19/voicescope:v0.2.0
+$digest = 'sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95'
+$image = "qminh19/voicescope@$digest"
+docker pull $image
 docker run -d --name voicescope `
   --read-only --tmpfs /tmp:size=64m,mode=1777 `
   --cap-drop ALL --security-opt no-new-privileges `
-  -p 127.0.0.1:8000:8000 `
-  qminh19/voicescope@sha256:<DIGEST_THUC_TE>
+  -p 127.0.0.1:8000:8000 $image
+python tools/container_smoke.py
 ```
 
-Sau đó chạy smoke ở mục 6. Kiến trúc image trong pipeline này là linux/amd64; không tuyên bố đã thử ARM64. Lệnh pull chỉ được xem là kiểm chứng công khai sau khi dùng config trống và nhận manifest/layers thành công.
+Mở http://127.0.0.1:8000, kiểm /ready trả model_ready=true và /health.version khớp source SHA phía trên. Nếu cổng/name đã dùng, chọn cổng/name khác rồi truyền --url phù hợp cho smoke. Cách gọi POST /inference bằng WAV/FLAC nằm ở mục 6.
+
+Lệnh kiểm pull ẩn danh đã thực hiện, không logout tài khoản Docker hiện tại:
+
+```powershell
+# config.json trong thu muc nay chi chua {}
+docker --config tmp/docker-public-v020 pull `
+  qminh19/voicescope:v0.2.0
+```
+
+Kết quả thực tế: tải image thành công, digest khớp Docker Hub; chạy chính image theo digest, model ready, inference sin và câu TTS pass, UID 10001 và payload audit sạch. Image linux/amd64; không tuyên bố đã kiểm ARM64.
+
+Không ghi đè tag v0.2.0. Với một bản mới, publish từ version tag mới qua workflow để có cùng kiểm thử, tag SHA và quy tắc latest. Deploy/rollback nên dùng digest thay vì latest. Giữ model notice/license trong mọi bản phân phối; weights dùng CC BY-NC-SA 4.0, phi thương mại.
 
 ## 10. Deploy và rollback
 
@@ -309,28 +311,22 @@ TestClient có cảnh báo deprecation httpx trên phiên Starlette hiện tại
 
 ## 12. Kết quả kiểm chứng thực tế
 
-CI main mới nhất đã kiểm: THÀNH CÔNG, https://github.com/nqming/voicescope/actions/runs/41160259928. Test Python, test PCM, build Linux/amd64, ONNX inference và audit image đều pass. Login/publish được SKIP vì chưa cấu hình Docker Hub.
+CI phát hành: THÀNH CÔNG, https://github.com/nqming/voicescope/actions/runs/41185814386. Tag Git v0.2.0 trỏ source a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd. Tests, build, hardened container, inference, audit, login và push đều thành công.
 
-- Source build: checkout sạch, commit cf09394c83097a5e2c0f6290ac144e795fdfa144; giữ nguyên README người dùng vừa sửa. OCI label và /health.version khớp commit.
-- Tag local đã kiểm: voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144; dung lượng 833.850.413 bytes, khoảng 795 MiB.
-- ID local: sha256:86beb401656b893088467a32f5d49af11bec0d9c331e125c7f0271c62f2fbc8f. Đây KHÔNG phải digest registry đã publish.
-- Container chạy UID 10001, filesystem read-only, tmpfs /tmp, drop capabilities và no-new-privileges. Model ready, health và các endpoint HTTP pass.
-- Inference sin 2 giây chạy được. Câu Windows TTS 5,368 giây: fake, fake_score 0,99997365; expected-label=fake pass. Đây là kiểm thực thi, không phải benchmark accuracy.
-- Payload sạch: không có torch, audio, token hoặc __pycache__ trong /app; có model card, notice, license và manifest. Weights 89.730.755 bytes, SHA256 66a094e0d039c899e07fd08f8c3ff6ecf24145ce8bf5f53a3d23e25c5775f4f5 khớp manifest.
-- Kiểm tra trước đó: local 25 passed/1 skipped; CI Linux 23 passed/2 skipped; test PCM pass. Compose và bash -n hợp lệ; chưa chạy remote deploy.
+- Public repository: https://hub.docker.com/r/qminh19/voicescope. Tags v0.2.0, latest và sha-a8a29e7fb422fab1cda54bc16e43e0e4f396f2dd cùng digest.
+- Registry digest: sha256:29fe6d6ec3aea079af51f52fdf7cd10acad9bc12d006d97cabc7d540cdac4d95. Đây là digest đã publish và pull công khai, không phải ID bản build local cũ.
+- Pull ẩn danh: PASS, Docker config riêng trống, không có credential/helper; không logout phiên đang dùng.
+- Image tải từ registry: linux/amd64, 833.850.217 bytes (khoảng 795 MiB); OCI revision và /health.version khớp source SHA.
+- Container UID 10001, read-only, tmpfs /tmp, drop capabilities, no-new-privileges. Model sẵn sàng, HTTP và ONNX inference đều pass.
+- Câu Windows TTS tổng hợp 5,368 giây: fake, fake_score 0,99997365; expected-label=fake pass. Sin 2 giây chạy được. Đây là kiểm thực thi, không phải benchmark accuracy.
+- Payload audit sạch: không có torch, audio, token hoặc __pycache__ trong /app. Model card, notice, license và manifest được giữ. Weights 89.730.755 bytes, SHA256 66a094e0d039c899e07fd08f8c3ff6ecf24145ce8bf5f53a3d23e25c5775f4f5 khớp manifest.
+- Test đã xác minh trước đó: Windows 25 passed/1 skipped, Linux 23 passed/2 skipped, PCM test pass. Compose và bash -n hợp lệ.
 
-Chạy đúng image đã có trên máy, không cần Docker Hub:
+GitHub Actions đã có DOCKERHUB_TOKEN mã hóa và DOCKERHUB_USERNAME=qminh19. Token không nằm trong source, image, log bàn giao hay tài liệu. Lỗi API tạo repository ban đầu đã xử lý bằng endpoint Docker Hub hiện hành; repository public đã được xác minh sau đó.
 
-```powershell
-docker run --rm -p 127.0.0.1:8000:8000 `
-  voicescope:sha-cf09394c83097a5e2c0f6290ac144e795fdfa144
-```
+Báo cáo nằm tại docs/cicd-verification.json và artifacts/public-*.json. Audio TTS chỉ ở tmp/; không dùng hay upload bản ghi microphone riêng của người dùng.
 
-Các lệnh voicescope:cicd-test ở phần hướng dẫn là tag local mẫu. Image theo SHA trên đây thay thế bản thử build từ workspace chưa commit. Log/JSON ở artifacts/; câu TTS ở tmp/; các thư mục này bị loại khỏi Git/image. Không dùng bản ghi microphone riêng của người dùng.
-
-Publish Docker Hub: CHƯA THỰC HIỆN, chưa có pull công khai hay registry digest được xác minh. Auto-review yêu cầu xác nhận cụ thể trước khi chuyển PAT đang lưu sang secret GitHub Actions và tạo public qminh19/voicescope. Lệnh bị chặn chưa thực thi; chưa có credential được chuyển.
-
-CD: đã có cấu hình deploy/rollback nhưng CHƯA deploy image mới. Bản Render giữ nguyên; lần kiểm read-only trước trả /health và /ready 200, revision f196402. Không tạo hạ tầng trả phí.
+CD: CHƯA deploy image mới lên Render. Đã tìm thấy tích hợp Render nhưng chưa cài/kết nối tài khoản trong phiên hiện tại; không có quyền gọi deploy service. Bản Render giữ nguyên. Cấu hình Docker host và rollback đã chuẩn bị; chưa kiểm remote hoặc rollback production, không tạo hạ tầng trả phí.
 
 ## 13. Giới hạn và việc cần thêm cho production
 
@@ -340,7 +336,7 @@ Cần bổ sung quét CVE/SBOM và ký image theo chính sách vận hành; lock
 
 API hiện dùng một worker và giới hạn request theo process; production cần gateway/rate limit chung, TLS, auth nếu phù hợp, quan sát lỗi và hiệu năng không log audio, giới hạn tài nguyên và timeout tại reverse proxy. Không coi liveness là chất lượng model. Không dùng kết quả như kết luận giám định.
 
-Việc đang chờ: phê duyệt cụ thể để tạo repository Docker Hub public và lưu PAT vào GitHub Actions; sau đó push image, kiểm pull ẩn danh, ghi tag/digest thật, kích hoạt publish job và cập nhật kết quả tài liệu. CD server cần host SSH đã có hoặc quyền cấu hình Render tương ứng. Không yêu cầu gửi token vào chat.
+Việc còn lại là kết nối tài khoản Render (hoặc cung cấp quyền Docker host theo cơ chế bảo mật), rồi deploy đúng digest ở mục 9, kiểm health/inference sau deploy và xác minh rollback. CI/build/publish và pull công khai đã hoàn tất; không cần gửi token vào chat.
 
 Nguồn kỹ thuật chính thức để tra cứu thêm:
 
