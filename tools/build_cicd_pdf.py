@@ -28,22 +28,21 @@ def safe(s):
     return s
 
 class Diagram(Flowable):
-    def __init__(self): super().__init__();self.width=usable;self.height=225
+    def __init__(self): super().__init__();self.width=usable;self.height=192
     def draw(self):
         c=self.canv
-        boxes=[(5,160,'CODE / PR'),(174,160,'TEST + BUILD'),(343,160,'MODEL + AUDIT'),(343,60,'DOCKER HUB'),(174,60,'DEPLOY RIÊNG'),(5,60,'HEALTH / ROLLBACK')]
+        boxes=[(0,130,'1. Dự án AI'),(130,130,'2. API'),(260,130,'3. Dockerfile'),(390,130,'4. Build image'),(390,55,'5. Test container'),(260,55,'6. CI'),(130,55,'7. Build & push'),(0,55,'8. CD')]
         for x,y,label in boxes:
-            c.setFillColor(colors.HexColor('#E8F3EF'));c.setStrokeColor(colors.HexColor('#93BEB2'));c.roundRect(x,y,150,42,8,fill=1)
-            c.setFillColor(colors.HexColor('#0D5B54'));c.setFont('ArialVN-Bold',9);c.drawCentredString(x+75,y+17,label)
+            c.setFillColor(colors.HexColor('#E8F3EF'));c.setStrokeColor(colors.HexColor('#93BEB2'));c.roundRect(x,y,109,39,7,fill=1)
+            c.setFillColor(colors.HexColor('#0D5B54'));c.setFont('ArialVN-Bold',8.5);c.drawCentredString(x+54.5,y+15,label)
         def arrow(x1,y1,x2,y2):
-            c.setStrokeColor(colors.HexColor('#47786B'));c.setLineWidth(1.5);c.line(x1,y1,x2,y2)
             import math
-            a=math.atan2(y2-y1,x2-x1)
-            for d in [-.5,.5]:c.line(x2,y2,x2-7*math.cos(a+d),y2-7*math.sin(a+d))
-        arrow(155,181,174,181);arrow(324,181,343,181);arrow(418,160,418,102);arrow(343,81,324,81);arrow(174,81,155,81)
-        c.setFillColor(colors.HexColor('#61726C'));c.setFont('ArialVN',8)
-        c.drawCentredString(418,130,'chỉ push tin cậy')
-        c.drawString(5,26,'PR dừng sau audit. Publish và deploy là hai bước riêng.')
+            c.setStrokeColor(colors.HexColor('#47786B'));c.setLineWidth(1.3);c.line(x1,y1,x2,y2);a=math.atan2(y2-y1,x2-x1)
+            for d in [-.5,.5]:c.line(x2,y2,x2-6*math.cos(a+d),y2-6*math.sin(a+d))
+        arrow(109,149.5,130,149.5);arrow(239,149.5,260,149.5);arrow(369,149.5,390,149.5)
+        arrow(444.5,130,444.5,94);arrow(390,74.5,369,74.5);arrow(260,74.5,239,74.5);arrow(130,74.5,109,74.5)
+        c.setFont('ArialVN',8);c.setFillColor(colors.HexColor('#61726C'))
+        c.drawString(0,25,'Thiết lập lần đầu theo 8 bước; CI sẽ tự lặp lại build và kiểm thử.')
 
 class NumberedCanvas(canvas.Canvas):
     def __init__(self,*a,**kw):canvas.Canvas.__init__(self,*a,**kw);self.states=[]
@@ -68,7 +67,9 @@ while i<len(lines):
         story.extend([Spacer(1,56),Paragraph('HƯỚNG DẪN THỰC HÀNH',ParagraphStyle(name='eyebrow',fontName='ArialVN-Bold',fontSize=10,leading=16,textColor=colors.HexColor('#61786E'))),Spacer(1,14),Paragraph(safe(line[2:]),styles['VNTitle'])]);i+=1
     elif line.startswith('## '):
         story.append(PageBreak());story.append(Paragraph(safe(line[3:]),styles['VNHeading']));i+=1
-        if line.startswith('## 2.'):story.append(Diagram());story.append(Spacer(1,10))
+
+    elif line.strip()=='[[ROADMAP]]':
+        story.append(Spacer(1,10));story.append(Diagram());story.append(Spacer(1,8));i+=1
     elif line.startswith('```'):
         lang=line[3:];code=[];i+=1
         while i<len(lines) and not lines[i].startswith('```'):code.append(lines[i]);i+=1
@@ -87,6 +88,6 @@ while i<len(lines):
         while i<len(lines) and lines[i].strip() and not lines[i].startswith(('#','```','- ')):para.append(lines[i]);i+=1
         story.append(Paragraph(safe(' '.join(para)),styles['VNBody']))
 output=ROOT/'docs/huong-dan-cicd-docker-ai.pdf'
-doc=SimpleDocTemplate(str(output),pagesize=(W,H),rightMargin=margin,leftMargin=margin,topMargin=48,bottomMargin=60,title='VoiceScope - Huong dan CI/CD va Docker AI',author='VoiceScope',pageCompression=1)
+doc=SimpleDocTemplate(str(output),pagesize=(W,H),rightMargin=margin,leftMargin=margin,topMargin=48,bottomMargin=60,title='VoiceScope - Trien khai AI theo 8 buoc',author='VoiceScope',pageCompression=1)
 doc.build(story,canvasmaker=NumberedCanvas)
 print(output)
