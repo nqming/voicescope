@@ -51,9 +51,3 @@ Chưa có learned VAD, WebRTC AFE đầy đủ, near-duplicate detector, importe
 provider TTS/VC hoặc bằng chứng consent thực. Các phần này được ghi rõ, không gán
 nhãn “hoàn thành toàn bộ nghiên cứu”.
 
-## Quy tắc nộp
-
-Chỉ source/config/tests/docs và template metadata không định danh. `.gitignore`
-bỏ qua dataset, audio, archive, checkpoint, cache và `.env` thật. README trong
-`data/` chỉ là hướng dẫn, không chứa data. Không stage hai ảnh/PDF gốc chưa rõ quyền.
-Không push main/master hoặc force-push. Xem diff và danh sách staged trước commit.
