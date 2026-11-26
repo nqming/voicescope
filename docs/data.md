@@ -1,6 +1,6 @@
 # Thu thập và quản lý dữ liệu
 
-**Hướng dẫn nộp và mã mới:** xem [data-pipeline.md](data-pipeline.md) để chạy
+Xem [data-pipeline.md](data-pipeline.md) để chạy
 `collect ingest/record`, importer ASVspoof 2019 LA và prepare theo từng khối pipeline.
 
 Chưa có người tham gia, consent hoặc dữ liệu nào được xác nhận trong dự án.
