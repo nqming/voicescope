@@ -163,13 +163,4 @@ Muốn rollback, redeploy image/commit trước đó và trỏ lại model tươ
 kiểm tra health/ready và smoke lại. Không thay schema preprocessing trong checkpoint
 mà vẫn dùng detector cũ.
 
-## Chức năng và giới hạn
 
-Đã hoạt động local: UI tiếng Việt, static assets, health, cảnh báo chưa model, API lỗi
-503 đúng; cấu hình Host/CORS/rate limit được test. Không lưu audio request vào disk.
-Người dùng đã xác nhận web public mở được; kiểm chứng độc lập URL/HTTPS vẫn chưa có,
-và Docker build local chưa chạy do thiếu engine.
-Chưa có detector checkpoint nên chưa suy luận thật hoặc đo chất lượng.
-Rate limit là per-process, không thay auth/quota phân tán khi vận hành nhiều instance.
-Nếu mở app có model cho nhiều người dùng, bổ sung kiểm soát truy cập theo nhu cầu
-của bạn trước khi tăng quy mô; HTTPS không tự cung cấp xác thực người dùng.
