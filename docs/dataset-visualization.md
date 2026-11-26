@@ -1,4 +1,4 @@
-# Dataset Visualization — 30/10/2026
+# Dataset Visualization
 
 Notebook: `notebooks/voicescope_dataset_visualization.ipynb`.
 Tạo lại nguồn notebook bằng `python notebooks/build_visualization.py` (xóa outputs).
