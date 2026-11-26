@@ -24,10 +24,3 @@ DINOv3 giữ nguyên như hướng nghiên cứu, chưa có bằng chứng chấ
 Kiểm tra API/deploy: 9 tests passed (ngoài sandbox, do socketpair nội bộ bị chặn trong sandbox).
 Kaggle public: https://www.kaggle.com/code/quminh19/voicescope-audio-deepfake-dataset-visualization
 Bản Quick Save chứa outputs đã thực thi local; phiên Save & Run All đầu tiên còn chạy trên Kaggle.
-
-## Render deployment
-
-2026-10-30: giao diện mới đã deploy thành công tại https://voicescope-581u.onrender.com.
-Branch `feature/deploy-voicescope`, commit `aa6211132b391c7a26ad38d117426df1b2b8cd64`.
-Render báo Live; HTTP smoke đạt trang chủ, frontend routes, health, readiness và thiếu checkpoint trả 503 không có score.
-Bằng chứng local: `artifacts/render-ui-smoke.json`. Model chưa cấu hình.
