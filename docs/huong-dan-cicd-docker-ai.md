@@ -1,7 +1,5 @@
 # Triển khai VoiceScope AI theo 8 bước
 
-Hướng dẫn thực hành | Đối chiếu kết quả đã kiểm chứng ngày 31/10/2026
-
 Quy trình bạn đề xuất phù hợp: chuẩn bị dự án, tạo API, đóng gói Docker, kiểm thử, thiết lập CI, tự động phát hành image và triển khai lên server. Đây là thứ tự thiết lập lần đầu; sau đó CI tự lặp lại các bước build và kiểm thử mỗi khi mã thay đổi.
 
 Phạm vi: phục vụ inference CPU của VoiceScope bằng model NII AntiDeepfake ONNX Q4 có sẵn, không huấn luyện lại. Mã nguồn: https://github.com/nqming/voicescope. Web đã kiểm chứng: https://voicescope-581u.onrender.com.
