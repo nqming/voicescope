@@ -1,8 +1,5 @@
 # Deploy VoiceScope: frontend và API cùng một URL
 
-Yêu cầu số 3 là **link deploy hệ thống**, tức URL mở ứng dụng đã triển khai.
-Benchmark latency được giữ làm tiện ích nghiên cứu, không phải đầu ra bắt buộc.
-
 ## Trạng thái hiện tại
 
 Đã có ASVspoof 2019 LA và Vietnam-Celeb cục bộ. Đã có mã frontend/backend và các
