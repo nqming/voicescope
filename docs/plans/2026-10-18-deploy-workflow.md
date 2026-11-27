@@ -1,7 +1,5 @@
 # VoiceScope: triển khai bằng một URL
 
-Yêu cầu số 3 được đính chính là **link deploy hệ thống**, không phải latency.
-Người dùng cho phép hoàn thiện cấu hình nếu chưa có tài khoản/quyền hosting.
 
 ## Intent
 Giữ FastAPI phục vụ frontend cùng origin, đóng gói container Python, chuẩn bị Render
