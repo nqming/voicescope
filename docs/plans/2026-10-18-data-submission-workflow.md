@@ -1,8 +1,5 @@
 # Nộp mã pipeline dữ liệu
 
-## Intent
-Nộp branch GitHub với README chỉ rõ file thay đổi, mã thu thập/tiếp nhận audio,
-import benchmark và xử lý theo pipeline.png. User hoãn training/model.
 
 ## Verification
 Test consent trước mở microphone/copy, duplicate ID/hash, metadata/lineage,
