@@ -6,12 +6,6 @@ auto_approve: true
 worktree: false
 ---
 
-## Khảo sát và quyết định
-Chỉ có design.png, pipeline.png và hai PDF; không có .git, code, dữ liệu hay weights.
-Triển khai trực tiếp theo ủy quyền của người dùng. Không tải weights/dataset hoặc chạy huấn luyện.
-Chọn FastAPI + HTML/CSS/JS cùng origin thay vì framework frontend để giảm dependency.
-Chọn PyTorch Hub local chính thức thay vì dịch vụ inference bên ngoài.
-
 ## Contracts
 - Intent: audio → log-Mel → ảnh 3 kênh → DINOv3 → head Real/Fake; không giả lập kết quả.
 - Verification: unit tests dùng tín hiệu tổng hợp chỉ kiểm tra code; API 503 khi thiếu checkpoint; compile và kiểm tra UI.
